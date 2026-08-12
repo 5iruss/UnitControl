@@ -1,4 +1,3 @@
-````md
 # UnitControl — Technical Requirements
 
 **Version:** 1.0  
@@ -61,6 +60,8 @@ The frontend must support:
 * Academic statistics
 * Student profile management
 * Admin Panel
+
+The frontend must support a **Persian (Farsi) right-to-left (RTL)** interface, since all curriculum data is Persian and academic terms use the university (Iranian) calendar format. Course names and codes must be rendered exactly as stored in `06_Curriculum_Dataset.md` and must not be translated or altered. Additional UI languages are out of scope for the initial version.
 
 The interface must follow:
 
@@ -161,7 +162,8 @@ The system must support:
 * Course relationships
 * Course groups
 * Curriculum requirements
-* Student course states
+* Student course states (current)
+* Course attempt history
 * Academic terms
 * Semester GPA
 
@@ -551,6 +553,3 @@ Technology decisions should be finalized before implementation and then document
 The final implementation must remain consistent with all previous project documents.
 
 `10_Claude_Master_Prompt.md` will define how Claude should use this document together with the other project specifications.
-
-```
-```

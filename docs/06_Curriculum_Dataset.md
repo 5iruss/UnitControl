@@ -1,4 +1,3 @@
-````md
 # UnitControl — Curriculum Dataset
 
 **Version:** 1.0  
@@ -38,17 +37,32 @@ Database implementation is defined in:
 
 # 2. Curriculum Versions
 
-UnitControl currently supports:
+UnitControl currently supports three distinct curricula. The **major** is Computer Engineering in all three; they differ by **entry year** and **orientation**.
 
-| Curriculum | Entry Year | Orientation |
-|---|---:|---|
-| Computer Engineering — Software Engineering | 1402 and before | Software Engineering |
-| Computer Engineering — Information Technology | 1402 and before | Information Technology |
-| Computer Engineering | 1403 and after | Unified |
+| Curriculum | Major | Entry Year | Orientation |
+|---|---|---:|---|
+| Computer Engineering — Software Engineering | Computer Engineering | 1402 and before | Software Engineering |
+| Computer Engineering — Information Technology | Computer Engineering | 1402 and before | Information Technology |
+| Computer Engineering — Unified | Computer Engineering | 1403 and after | Unified |
+
+Software Engineering and Information Technology are orientations, not separate majors (see `01_Product_Overview.md` §5 and `04_Academic_Rules_Engine.md` §15).
 
 ---
 
 # 3. Pre-1403 Curriculum
+
+The pre-1403 data below defines **two** curricula that share most sections:
+
+- **Software Engineering** orientation: the shared sections (3.1 Common Core, 3.2 Specialized Selective, 3.3 Elective, 3.4 Preparatory, 3.7 Basic, 3.8 General) **plus** the Software Engineering Specialization (3.5).
+- **Information Technology** orientation: the same shared sections **plus** the Information Technology Specialization (3.6).
+
+Sections 3.5 and 3.6 are orientation-specific and belong to their respective curriculum only. The exact assignment of each shared section to each orientation:
+
+```text
+TBD — Requires official academic verification
+```
+
+Course-level unit values and `total_required_units` per curriculum are not supplied (see §7, §9).
 
 ## 3.1 Common Core — 59 Units
 
@@ -409,16 +423,31 @@ Semester values:
 
 The following values were supplied directly and should **not be silently changed**.
 
-### Duplicate Course Code
+### Duplicate Course Codes
 
-The 1403+ elective list contains:
+**(a)** The 1403+ elective list contains two different courses sharing one code:
 
 ```text
-مفاهیم پیشرفته  → 7000031598
+مفاهیم پیشرفته   → 7000031598
 مفاهیم پیشرفته 2 → 7000031598
 ```
 
-This requires verification before production use.
+**(b)** In the 1403+ dataset, the same code is used for two different courses across two categories:
+
+```text
+مدیریت پروژه (Specialized Selective §4.2)                          → 7000031588
+مدیریت و برنامه ریزی راهبردی فناوری اطلاعات (Elective §4.4)          → 7000031588
+```
+
+Note also that the code `7000031571` does not appear anywhere in the dataset, so the intended code for one of the two courses above cannot be inferred.
+
+Both duplicate-code cases:
+
+```text
+TBD — Requires official academic verification
+```
+
+The correct codes must not be guessed. The supplied values are preserved as-is.
 
 ### Category Duplication
 
@@ -433,7 +462,9 @@ under both:
 * Specialized Required
 * Basic
 
-This also requires verification.
+```text
+TBD — Requires official academic verification
+```
 
 ### Unit Values
 
@@ -501,6 +532,3 @@ Technical implementation is defined in:
 The final implementation instructions are defined in:
 
 `10_Claude_Master_Prompt.md`
-
-```
-```

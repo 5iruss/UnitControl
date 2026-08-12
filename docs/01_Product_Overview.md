@@ -1,4 +1,4 @@
-# Academic Planner — Product Overview
+# UnitControl — Product Overview
 
 **Version:** 1.0  
 **Status:** Foundation Specification
@@ -7,7 +7,7 @@
 
 ## 1. Product
 
-Academic Planner is a web-based academic planning system for Computer Engineering students.
+UnitControl is a web-based academic planning system for Computer Engineering students.
 
 It transforms a static university curriculum into an interactive academic map that helps students:
 
@@ -18,7 +18,7 @@ It transforms a static university curriculum into an interactive academic map th
 - Detect academic problems.
 - See their academic progress.
 
-Academic Planner is a **planning assistant**, not the university's official course-registration system.
+UnitControl is a **planning assistant**, not the university's official course-registration system.
 
 ---
 
@@ -36,7 +36,7 @@ Students often need to manually determine:
 - How many units they can take.
 - Which courses are appropriate for the next semester.
 
-Academic Planner automates this reasoning and presents it visually.
+UnitControl automates this reasoning and presents it visually.
 
 ---
 
@@ -81,11 +81,15 @@ Responsible for basic student account support, such as password recovery.
 
 ## 5. Academic Scope
 
-The initial system supports Computer Engineering curricula:
+The initial system supports Computer Engineering curricula.
 
-- Software Engineering — entry year 1402 and before
-- Information Technology — entry year 1402 and before
-- Computer Engineering — entry year 1403 and after
+The **major** is Computer Engineering in all supported curricula. Curricula are distinguished by **entry year** and **orientation**:
+
+- Computer Engineering, orientation Software Engineering — entry year 1402 and before
+- Computer Engineering, orientation Information Technology — entry year 1402 and before
+- Computer Engineering, orientation Unified — entry year 1403 and after
+
+Software Engineering and Information Technology are **orientations**, not separate majors. The authoritative curriculum-to-orientation mapping is defined in `06_Curriculum_Dataset.md`.
 
 The actual academic data is defined in:
 

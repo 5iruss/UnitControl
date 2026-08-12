@@ -1,4 +1,3 @@
-````md
 # UnitControl — Claude Master Prompt
 
 **Version:** 1.0  
@@ -764,7 +763,7 @@ Do not mark the academic engine as production-ready until these values are verif
 
 The current dataset contains known items requiring verification.
 
-### Duplicate Code
+### Duplicate Codes
 
 ```text
 مفاهیم پیشرفته
@@ -772,6 +771,14 @@ The current dataset contains known items requiring verification.
 
 مفاهیم پیشرفته 2
 7000031598
+```
+
+```text
+مدیریت پروژه (Specialized Selective)
+7000031588
+
+مدیریت و برنامه ریزی راهبردی فناوری اطلاعات (Elective)
+7000031588
 ```
 
 ### Duplicate Curriculum Category
@@ -785,7 +792,7 @@ appears under both Specialized Required and Basic in the supplied 1403+ dataset.
 
 These must not be silently "fixed."
 
-Verify them before production.
+Verify them before production. Full detail is in `06_Curriculum_Dataset.md` §7.
 
 ---
 
@@ -869,6 +876,3 @@ When uncertain, consult the relevant documentation first.
 When the documentation does not provide the answer, stop and identify the missing decision rather than guessing.
 
 The final implementation must remain consistent with all ten project documents.
-
-```
-```

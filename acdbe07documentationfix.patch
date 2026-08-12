@@ -1,0 +1,1187 @@
+From acdbe07d8b0cf09a3cd43bf6ff655ddfecd8de90 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Wed, 12 Aug 2026 16:36:44 +0000
+Subject: [PATCH] Repair and finalize documentation
+
+Fix structural and cross-document issues found in the documentation audit,
+without inventing any academic data:
+
+- Rename "Academic Planner" to "UnitControl" (File 01).
+- Replace File 03 (previously the generation prompt) with the actual
+  UX/UI specification.
+- Clarify Major vs Orientation: Computer Engineering is the major;
+  Software Engineering / Information Technology / Unified are orientations
+  (Files 01, 04, 06).
+- Reconcile Files 05 and 07: drop required_units and elective_group_id from
+  the curriculum-course link, align course_groups on group_type, add a
+  category field to curriculum_requirements, and make course_group_courses
+  the single source of group membership.
+- Model course attempt history (student_course_attempts) so retakes,
+  "previously attempted" checks, and the failed-course recovery window can
+  be represented; keep temporary PLANNED planning separate from persistent
+  history; record semester GPA per term (Files 05, 07, 09).
+- Document that the pre-1403 dataset defines two curricula (SE, IT) sharing
+  common sections; mark the exact per-orientation composition as requiring
+  verification (File 06).
+- Flag the previously unacknowledged duplicate code 7000031588 and mark all
+  duplicate-code / category conflicts as requiring official verification;
+  preserve supplied data unchanged (Files 06, 10).
+- Add Persian/RTL/i18n requirements implied by the dataset (Files 03, 09).
+- Mark expired-failed-course blocking behavior and corequisite enforcement
+  semantics as TBD pending verification (File 04).
+- Remove the malformed outer code-fence wrapper that made 8 files render as
+  raw code blocks.
+
+Course data, credits, prerequisites, corequisites, credit limits, and
+final-semester rules remain untouched and marked TBD.
+
+Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01BFaJpD3MQgkzTSoHdhGeey
+---
+ docs/01_Product_Overview.md       |  20 +-
+ docs/02_User_Flow.md              |   4 -
+ docs/03_UX_UI_Specification.md    | 441 +++++++++++++++++++++++-------
+ docs/04_Academic_Rules_Engine.md  |  28 +-
+ docs/05_Curriculum_Data_Model.md  |  51 ++--
+ docs/06_Curriculum_Dataset.md     |  58 +++-
+ docs/07_Database_Schema.md        |  68 +++--
+ docs/08_Admin_Panel.md            |   4 -
+ docs/09_Technical_Requirements.md |   9 +-
+ docs/10_Claude_Master_Prompt.md   |  16 +-
+ 10 files changed, 509 insertions(+), 190 deletions(-)
+
+diff --git a/docs/01_Product_Overview.md b/docs/01_Product_Overview.md
+index 8dd06ec..bbfec59 100644
+--- a/docs/01_Product_Overview.md
++++ b/docs/01_Product_Overview.md
+@@ -1,4 +1,4 @@
+-# Academic Planner — Product Overview
++# UnitControl — Product Overview
+ 
+ **Version:** 1.0  
+ **Status:** Foundation Specification
+@@ -7,7 +7,7 @@
+ 
+ ## 1. Product
+ 
+-Academic Planner is a web-based academic planning system for Computer Engineering students.
++UnitControl is a web-based academic planning system for Computer Engineering students.
+ 
+ It transforms a static university curriculum into an interactive academic map that helps students:
+ 
+@@ -18,7 +18,7 @@ It transforms a static university curriculum into an interactive academic map th
+ - Detect academic problems.
+ - See their academic progress.
+ 
+-Academic Planner is a **planning assistant**, not the university's official course-registration system.
++UnitControl is a **planning assistant**, not the university's official course-registration system.
+ 
+ ---
+ 
+@@ -36,7 +36,7 @@ Students often need to manually determine:
+ - How many units they can take.
+ - Which courses are appropriate for the next semester.
+ 
+-Academic Planner automates this reasoning and presents it visually.
++UnitControl automates this reasoning and presents it visually.
+ 
+ ---
+ 
+@@ -81,11 +81,15 @@ Responsible for basic student account support, such as password recovery.
+ 
+ ## 5. Academic Scope
+ 
+-The initial system supports Computer Engineering curricula:
++The initial system supports Computer Engineering curricula.
+ 
+-- Software Engineering — entry year 1402 and before
+-- Information Technology — entry year 1402 and before
+-- Computer Engineering — entry year 1403 and after
++The **major** is Computer Engineering in all supported curricula. Curricula are distinguished by **entry year** and **orientation**:
++
++- Computer Engineering, orientation Software Engineering — entry year 1402 and before
++- Computer Engineering, orientation Information Technology — entry year 1402 and before
++- Computer Engineering, orientation Unified — entry year 1403 and after
++
++Software Engineering and Information Technology are **orientations**, not separate majors. The authoritative curriculum-to-orientation mapping is defined in `06_Curriculum_Dataset.md`.
+ 
+ The actual academic data is defined in:
+ 
+diff --git a/docs/02_User_Flow.md b/docs/02_User_Flow.md
+index da318bc..c830555 100644
+--- a/docs/02_User_Flow.md
++++ b/docs/02_User_Flow.md
+@@ -1,4 +1,3 @@
+-````md
+ # UnitControl — User Flow
+ 
+ **Version:** 1.0
+@@ -460,6 +459,3 @@ Detailed administrative functionality is defined in:
+ * Do not duplicate academic rules inside the user flow.
+ * Keep detailed UI behavior in `03_UX_UI_Specification.md`.
+ * Keep academic logic in `04_Academic_Rules_Engine.md`.
+-
+-```
+-```
+diff --git a/docs/03_UX_UI_Specification.md b/docs/03_UX_UI_Specification.md
+index fc5fac5..b541cc3 100644
+--- a/docs/03_UX_UI_Specification.md
++++ b/docs/03_UX_UI_Specification.md
+@@ -1,143 +1,386 @@
+-You are working on the UnitControl project.
++# UnitControl — UX/UI Specification
+ 
+-Your task is to create:
++**Version:** 1.0
++**Status:** Interface Specification
+ 
+-03_UX_UI_Specification.md
++---
+ 
+-Before writing anything, read these project documents:
++## 1. Purpose
+ 
+-1. 01_Product_Overview.md
+-2. 02_User_Flow.md
++This document defines the interface structure, visual behavior, and UX rules for UnitControl.
+ 
+-These files are the source of truth for the product scope and user flows.
++It is the source of truth for **how the product looks and behaves**, based only on decisions established in:
+ 
+-Your job is to define the UX/UI specification for UnitControl based ONLY on the decisions already established in those documents and the project context.
++- `01_Product_Overview.md` — product scope and goals
++- `02_User_Flow.md` — user journeys and interaction flows
+ 
+-IMPORTANT:
+-- Do not invent new product features.
+-- Do not change previously established product decisions.
+-- Do not define academic rules here. Those belong to 04_Academic_Rules_Engine.md.
+-- Do not define database structures. Those belong to 07_Database_Schema.md.
+-- Do not define technical implementation details. Those belong to 09_Technical_Requirements.md.
+-- Do not duplicate large amounts of information from Files 01 and 02.
+-- Keep this document short, clear, and implementation-oriented.
+-- If something is not yet decided, mark it as TBD instead of inventing a solution.
++This document does **not** define:
+ 
+-The document should define:
++- Academic rules → `04_Academic_Rules_Engine.md`
++- Data structures → `07_Database_Schema.md`
++- Technical implementation → `09_Technical_Requirements.md`
+ 
+-1. UX/UI goals
+-2. Overall application layout
+-3. Main dashboard structure
+-4. Student information section
+-5. Academic statistics section
+-6. Course-status filter toolbar
+-7. Course-status interaction and cursor behavior
+-8. Interactive curriculum map
+-9. Course node/card structure
+-10. Visual states for:
+-   - Passed
+-   - Failed
+-   - Currently Studying
+-   - Planned
+-   - Not Completed
+-   - Available
+-   - Blocked
+-11. Visual representation of prerequisite relationships
+-12. Visual representation of corequisite relationships
+-13. Course interaction behavior
+-14. Course details view
+-15. Semester selection for planned courses
++Where a decision is not yet established, it is marked `TBD` rather than invented.
+ 
+-IMPORTANT:
+-Do NOT create a separate "Term 1 / Term 2 / Term 3" structure around the curriculum map.
++---
+ 
+-The curriculum map remains the central academic visualization.
++## 2. UX/UI Goals
+ 
+-When planning a course, the student should be able to select the academic term associated with that course.
++- Answer the three product questions clearly (`01_Product_Overview.md` §3): *Where am I? What can I take next? What problems should I know about?*
++- Make academic progression and dependencies understandable **visually first**.
++- **Explain, don't just block**: when a course is unavailable, show the reason.
++- Keep the interface simple and focused on academic planning.
++- Give the student clear control over course status and semester planning.
+ 
+-The academic term format is:
++---
+ 
++## 3. Overall Application Layout
++
++Two separate interfaces:
++
++- **Student application** — authentication, onboarding, setup, dashboard.
++- **Admin panel** — separate interface defined in `08_Admin_Panel.md`.
++
++The student application centers on a single **Dashboard** built around the interactive curriculum map. There is no separate "Term 1 / Term 2 / Term 3" layout around the map.
++
++---
++
++## 4. Main Dashboard Structure
++
++Conceptual layout:
++
++```text
++┌─────────────────────────────────────────────────────────────┐
++│ Student Information │ Course Filters │ Status Toolbar        │
++├─────────────────────────────────────────────────────────────┤
++│                    Academic Statistics                       │
++├─────────────────────────────────────────────────────────────┤
++│                                                              │
++│               Interactive Curriculum Map                     │
++│                                                              │
++├──────────────────────────────┬───────────────────────────────┤
++│ Recommended Courses          │ Academic Problems / Warnings  │
++└──────────────────────────────┴───────────────────────────────┘
++```
++
++The curriculum map is the central visualization. All other panels support it.
++
++---
++
++## 5. Student Information Section
++
++Displays basic identity and academic profile (from `01_Product_Overview.md` §10):
++
++- Name
++- Student number
++- Entry year
++- Major and orientation
++- Study type
++- Assigned curriculum
++
++Read-only on the dashboard. Editing happens through profile management (§20).
++
++---
++
++## 6. Academic Statistics Section
++
++Displays derived progress values (calculated, never manually stored — see `07_Database_Schema.md` §20):
++
++- Completed units
++- Remaining units
++- Progress by category (general, basic, specialized, elective, etc.)
++- Passed / failed / in-progress / planned course counts
++
++The exact statistics shown follow what the Academic Rules Engine can derive; unavailable values (e.g. those depending on unverified credits) are hidden or marked incomplete rather than guessed.
++
++---
++
++## 7. Course-Status Filter Toolbar
++
++Lets the student filter which courses are emphasized on the map. Filters correspond to course states (§10):
++
++- Passed
++- Failed
++- Currently Studying
++- Planned
++- Not Completed
++- Available
++- Blocked
++
++Filters change visibility/emphasis only. They do not change academic state.
++
++---
++
++## 8. Course-Status Interaction and Cursor Behavior
++
++The Course Status Toolbar lets the student pick a status, then apply it to courses on the map (per `02_User_Flow.md` §7).
++
++Interaction concept:
++
++1. The student selects a status in the toolbar.
++2. The active status changes the cursor/indicator so the selected status is visible while the student clicks courses.
++3. Clicking a course on the map applies the selected status to that course.
++4. The system recalculates academic state (see `04_Academic_Rules_Engine.md` §22).
++
++Example indicators (exact visual style is the designer's choice; the interaction concept is required):
++
++- Passed → green check indicator
++- Failed → red X indicator
++
++---
++
++## 9. Interactive Curriculum Map
++
++The map visually communicates academic progression and dependencies for the student's assigned curriculum.
++
++Requirements:
++
++- Show course nodes/cards for the courses in the student's curriculum.
++- Visually distinguish every course state (§10).
++- Show prerequisite relationships (§11) and corequisite relationships (§12).
++- Distinguish **Available** from **Blocked** courses using the result of `04_Academic_Rules_Engine.md`.
++- Respond to changes in academic state without a full reload.
++
++The frontend must not compute academic eligibility itself; it renders the result supplied by the Academic Rules Engine (`09_Technical_Requirements.md` §4).
++
++The map must render correctly in a right-to-left (RTL) layout with Persian course names (see §22, §23).
++
++---
++
++## 10. Course Node / Card Structure and Visual States
++
++Each course node/card shows at least:
++
++- Course name
++- Course code
++- Credits when available (credits are `TBD` in the dataset — see `06_Curriculum_Dataset.md` §7; show only when verified)
++- Current status
++- Availability state
++
++The UI must give each of the following a distinct, non-color-only visual treatment (see accessibility, §23):
++
++**Student-assigned statuses**
++
++- Passed
++- Failed
++- Currently Studying
++- Planned
++- Not Completed
++
++**Rules-engine availability states** (from `04_Academic_Rules_Engine.md` §27)
++
++- Available
++- Blocked
++- Available With Warning
++
++The exact palette and shapes are the designer's choice, but the states must be unambiguously distinguishable.
++
++---
++
++## 11. Prerequisite Relationships (Visual)
++
++A prerequisite is shown as a **directed** connection:
++
++```text
++Course A ──▶ Course B   (A is a prerequisite for B)
++```
++
++The visual only represents the relationship stored in `06_Curriculum_Dataset.md`. Whether the student satisfies it is decided by `04_Academic_Rules_Engine.md`, and the map reflects that result through the target course's availability state.
++
++Prerequisite relationships are currently **not populated** in the dataset (`06_Curriculum_Dataset.md` §5). Until they are verified, the map shows no prerequisite edges.
++
++---
++
++## 12. Corequisite Relationships (Visual)
++
++A corequisite is shown as a **non-directed** connection:
++
++```text
++Course A ┈┈ Course B   (A and B are corequisites)
++```
++
++As with prerequisites, corequisite relationships are **not populated** yet (`06_Curriculum_Dataset.md` §5) and are not drawn until verified. The relationship's academic meaning belongs to `04_Academic_Rules_Engine.md`.
++
++---
++
++## 13. Course Interaction Behavior
++
++Clicking a course on the map does one of:
++
++- **Apply status** — when a status is selected in the toolbar (§8).
++- **Open details** — when no status is selected, or through an explicit "details" affordance (§14).
++
++Blocked courses remain visible and interactive enough to open their details and read the blocking reason. The UI never hides *why* a course is blocked.
++
++---
++
++## 14. Course Details View
++
++Opened from a course node. Shows:
++
++- Course name, code, category, credits (when verified)
++- Current status
++- Availability result and reasons (from `04_Academic_Rules_Engine.md` §20)
++- Any warnings
++- Prerequisite / corequisite relationships (when populated)
++- Semester selection for planning (§15)
++
++Reasons and warnings are presented as human-readable explanations, not raw codes (`09_Technical_Requirements.md` §21).
++
++---
++
++## 15. Semester Selection for Planned Courses
++
++When planning a course, the student selects the academic term directly on that course (no separate term-based layout).
++
++Academic term format (from `01_Product_Overview.md` §8 and `06_Curriculum_Dataset.md` §6):
++
++```text
+ 4051 = Mehr 1405
+ 4052 = Bahman 1405
+ 4053 = Summer 1405
++```
++
++Flow (from `02_User_Flow.md` §8, §11):
++
++1. Select the course.
++2. Select the academic term.
++3. The system validates via the Academic Rules Engine.
++4. Valid → the course is added to the plan. Invalid → the reason is shown; the course is not added.
++
++Planned courses are **temporary** and distinct from persistent academic history (see `07_Database_Schema.md` §14–§16).
++
++---
++
++## 16. Recommended Courses Panel
++
++Shows courses the Academic Rules Engine recommends for the next semester (`04_Academic_Rules_Engine.md` §10).
++
++Each recommendation must include a short reason. Example:
++
++```text
++پایگاه داده (Database)
++Credits: (shown when verified)
++
++Prerequisites satisfied.
++```
++
++Recommendations are supplied by the rules engine; the frontend must not compute them (`09_Technical_Requirements.md` §13).
++
++---
++
++## 17. Academic Problems / Warnings Panel
++
++Shows structured warnings from the Academic Rules Engine (`04_Academic_Rules_Engine.md` §19).
++
++Each warning should communicate:
++
++- What is wrong
++- Why it is happening
++- Which course is affected
++- What the student can do
++
++Warnings explain rather than block. Avoid generic messages such as "Error: Course unavailable."
++
++---
++
++## 18. Simple Setup UI
++
++Supports Simple Mode (`02_User_Flow.md` §5).
++
++- Show the empty curriculum map.
++- Let the student mark current course statuses using the status toolbar.
++- Do not require semester history, academic terms, or GPA.
++- Continue to the dashboard.
++
++---
++
++## 19. Advanced Setup UI
+ 
+-Also define:
++Supports Advanced Mode (`02_User_Flow.md` §5, §12).
+ 
+-16. Recommended Courses panel
+-17. Academic Problems / Warnings panel
+-18. Simple Setup UI
+-19. Advanced Setup UI
+-20. Profile-change/reset warning UI
+-21. Login and onboarding UI at a high level
+-22. Responsive behavior
+-23. Accessibility/basic usability requirements
+-24. UX principles
++- The student adds academic terms one at a time.
++- For each term: mark the courses taken and their final status.
++- Enter the **semester GPA** for that term (individual course grades are never requested).
++- Continue to the next term, then finish and enter the dashboard.
+ 
+-For the main dashboard, use this conceptual structure:
++Advanced setup produces persistent academic history (`07_Database_Schema.md` §14–§15).
+ 
+----------------------------------------------------------
+-Student Info | Course Filters | Status Toolbar
+----------------------------------------------------------
+-Academic Statistics
+----------------------------------------------------------
+-              Interactive Curriculum Map
+----------------------------------------------------------
+-Recommended Courses | Academic Problems / Warnings
+----------------------------------------------------------
++---
+ 
+-The Course Status Toolbar should support an interaction where selecting a status changes the visual cursor/indicator.
++## 20. Profile-Change / Reset Warning UI
+ 
+-Example:
++When the student edits a profile value that changes their curriculum (entry year, major, orientation — see `04_Academic_Rules_Engine.md` §23):
+ 
+-Passed → green check indicator
+-Failed → red X indicator
++1. Detect the curriculum change.
++2. Show an explicit reset warning describing that existing academic course-state data will be reset.
++3. Require explicit confirmation (an accidental click must not trigger the reset).
++4. On confirmation, reset course-state data and assign the new curriculum.
++5. Prompt the student to reconfigure their academic status.
+ 
+-The exact visual style can be chosen by the designer, but the interaction concept must remain.
++The system must never reset data silently, and must offer a clear cancel path.
+ 
+-The curriculum map should visually communicate academic progression and dependencies.
++---
+ 
+-When a course becomes available based on the Academic Rules Engine, the UI should be able to visually distinguish it from blocked/unavailable courses.
++## 21. Login and Onboarding UI (High Level)
+ 
+-Do not define the academic conditions for "available" or "blocked" in this document. Reference:
++- **Registration** (`02_User_Flow.md` §3): student number → password → first/last name → phone number. No OTP in the initial version.
++- **Login** (`02_User_Flow.md` §14): student number + password, or phone number + password.
++- **Onboarding**: after registration, collect academic profile (entry year, major, orientation, study type), then route to Simple or Advanced setup.
++- **Password recovery**: handled through the support process (`08_Admin_Panel.md` §11); there is no self-service reset in the initial version.
+ 
+-04_Academic_Rules_Engine.md
++---
+ 
+-The document must also include a clear reference section explaining which information comes from which project file.
++## 22. Responsive Behavior
+ 
+-Use this reference hierarchy:
++- The application must be usable on desktop and adapt to smaller screens.
++- The curriculum map is the most layout-sensitive component; on small screens it may use panning/zooming or a condensed layout. Exact responsive treatment of the map is `TBD` and must not compromise the ability to read course state and blocking reasons.
++- The interface must support a **right-to-left (RTL)** layout, since curriculum data is Persian (`06_Curriculum_Dataset.md`).
+ 
+-01_Product_Overview.md
+-→ Product scope and goals
++---
+ 
+-02_User_Flow.md
+-→ User journeys and interaction flows
++## 23. Accessibility / Basic Usability
+ 
+-03_UX_UI_Specification.md
+-→ Interface, visual behavior, and UX rules
++- Do not rely on color alone to convey state; pair color with icons/labels/shapes (§10).
++- Provide readable contrast and legible Persian typography.
++- Support keyboard interaction for core actions where practical.
++- Every blocked or warned course must expose a readable textual reason.
++- Confirmations for destructive actions (profile reset) must be explicit (§20).
+ 
+-04_Academic_Rules_Engine.md
+-→ Academic validation and decision logic
++---
+ 
+-05_Curriculum_Data_Model.md
+-→ Academic data structure
++## 24. Internationalization / Language
+ 
+-06_Curriculum_Dataset.md
+-→ Actual courses, codes, curricula, and verified relationships
++- Primary content language is **Persian (Farsi)** with RTL layout.
++- Course names and codes are rendered exactly as stored in `06_Curriculum_Dataset.md`; the UI must not translate or alter them.
++- Academic term codes are shown in the university format (§15).
++- Any additional UI languages are `TBD` and out of scope for the initial version.
+ 
+-07_Database_Schema.md
+-→ Data persistence
++---
+ 
+-08_Admin_Panel.md
+-→ Administrative interface
++## 25. UX Principles
+ 
+-09_Technical_Requirements.md
+-→ Technical implementation
++- **Visual first** — progress and dependencies are understandable at a glance.
++- **Explain, don't just block** — always show why a course is unavailable.
++- **Student control** — the student owns their status and planning.
++- **Minimum data** — never ask for information the product does not need.
++- **Single source of truth** — the UI presents results from the rules engine and dataset; it does not redefine them.
+ 
+-10_Claude_Master_Prompt.md
+-→ Final implementation instructions
++---
+ 
+-Output ONLY the complete Markdown content of:
++## 26. Reference Hierarchy
+ 
+-03_UX_UI_Specification.md
++| Information | Source |
++| --- | --- |
++| Product scope and goals | `01_Product_Overview.md` |
++| User journeys and interaction flows | `02_User_Flow.md` |
++| Interface, visual behavior, and UX rules | `03_UX_UI_Specification.md` |
++| Academic validation and decision logic | `04_Academic_Rules_Engine.md` |
++| Academic data structure | `05_Curriculum_Data_Model.md` |
++| Actual courses, codes, curricula, relationships | `06_Curriculum_Dataset.md` |
++| Data persistence | `07_Database_Schema.md` |
++| Administrative interface | `08_Admin_Panel.md` |
++| Technical implementation | `09_Technical_Requirements.md` |
++| Final implementation instructions | `10_Claude_Master_Prompt.md` |
+ 
+-Do not wrap the document in commentary or explain what you did.
++This document defines interface and UX behavior only. It does not define academic rules, data persistence, or technical implementation.
+diff --git a/docs/04_Academic_Rules_Engine.md b/docs/04_Academic_Rules_Engine.md
+index 01b59e6..656d8f7 100644
+--- a/docs/04_Academic_Rules_Engine.md
++++ b/docs/04_Academic_Rules_Engine.md
+@@ -1,4 +1,3 @@
+-````md
+ # UnitControl — Academic Rules Engine
+ 
+ **Version:** 1.0  
+@@ -138,6 +137,12 @@ Until verified, the implementation must treat the exact counting mechanism as:
+ TBD — Requires official academic verification
+ ```
+ 
++Whether an **expired** failed course only warns, or actually **blocks** subsequent (dependent) courses, is also unresolved:
++
++```text
++TBD — Requires official academic verification
++```
++
+ ---
+ 
+ # 6. Corequisite Rule
+@@ -158,6 +163,12 @@ The exact corequisite relationships must come from:
+ 
+ The Rules Engine must not invent corequisite relationships.
+ 
++The precise enforcement semantics — whether a corequisite must be taken **in the same semester**, or **at the same time or earlier** — is not yet decided:
++
++```text
++TBD — Requires official academic verification
++```
++
+ ---
+ 
+ # 7. Same-Semester Prerequisite Rule
+@@ -342,20 +353,22 @@ The student's curriculum is determined from their academic profile.
+ Relevant information includes:
+ 
+ * Entry year.
+-* Major.
++* Major (Computer Engineering for all supported curricula).
+ * Orientation.
+ 
++Software Engineering and Information Technology are **orientations** of the Computer Engineering major, not separate majors. Curriculum assignment is driven by entry year plus orientation.
++
+ The system must assign the correct curriculum version.
+ 
+-Current curriculum groups:
++Current curriculum groups (major = Computer Engineering):
+ 
+ ```text
+ Entry Year <= 1402
+-├── Software Engineering
+-└── Information Technology
++├── Orientation: Software Engineering
++└── Orientation: Information Technology
+ 
+ Entry Year >= 1403
+-└── Computer Engineering
++└── Orientation: Unified
+ ```
+ 
+ The actual curriculum definitions are stored in:
+@@ -685,6 +698,3 @@ AVAILABLE_WITH_WARNING
+ The Rules Engine is responsible for determining the result.
+ 
+ The UI is responsible only for presenting that result.
+-
+-```
+-```
+diff --git a/docs/05_Curriculum_Data_Model.md b/docs/05_Curriculum_Data_Model.md
+index 29c86bd..bd00974 100644
+--- a/docs/05_Curriculum_Data_Model.md
++++ b/docs/05_Curriculum_Data_Model.md
+@@ -1,4 +1,3 @@
+-````md
+ # UnitControl — Curriculum Data Model
+ 
+ **Version:** 1.0  
+@@ -161,12 +160,14 @@ curriculum_id
+ course_id
+ category
+ required
+-elective_group_id
+-required_units
+ ```
+ 
+ This allows the same course to have different roles in different curricula.
+ 
++Unit totals are not stored on the curriculum-course link. Course-level units belong to the course (see §5), and requirement totals belong to requirements and course groups (see §8, §16).
++
++Membership of a course in an elective/course group is represented by the course-group membership relation (see §8), not by a field on the curriculum-course link. This keeps a single, unambiguous source for group membership, consistent with `07_Database_Schema.md` §10.
++
+ ---
+ 
+ # 7. Course Categories
+@@ -210,13 +211,13 @@ A course group should contain:
+ group_id
+ curriculum_id
+ name
++group_type
+ required_units
+ minimum_courses
+ maximum_courses
+-requirements
+ ```
+ 
+-A group may contain multiple eligible courses.
++A group may contain multiple eligible courses. The set of eligible courses is stored as a separate membership relation between the group and its courses (persisted as `course_group_courses` in `07_Database_Schema.md` §10).
+ 
+ ---
+ 
+@@ -350,38 +351,45 @@ The term identifier should preserve the original university format.
+ 
+ # 14. Student Course State
+ 
+-The curriculum defines courses.
++The curriculum defines courses. The student's interaction with those courses is represented separately, in three distinct concepts.
+ 
+-The student's interaction with those courses is represented separately.
++### 14.1 Current Course State
+ 
+-A student may have a state such as:
++The student's current status for a course. Exactly one current state per student + course:
+ 
+ ```text
+-NOT_COMPLETED
+-PASSED
+-FAILED
+-CURRENTLY_STUDYING
+-PLANNED
++student
++course
++status        (NOT_COMPLETED | PASSED | FAILED | CURRENTLY_STUDYING | PLANNED)
++academic_term (optional)
+ ```
+ 
+-The data model should allow a student-course record to associate:
++For `PLANNED`, `academic_term` is the intended term. `PLANNED` is **temporary planning** and is distinct from persistent history (§14.2).
++
++### 14.2 Course Attempt History
++
++The record of actual past/current attempts of a course. A student may attempt a course more than once (e.g. fail, then retake), so this allows **multiple records** per student + course:
+ 
+ ```text
+ student
+ course
+-status
+ academic_term
++result        (PASSED | FAILED | CURRENTLY_STUDYING)
+ ```
+ 
+-Additional academic-history information may include:
++Attempt history is the basis for distinguishing *never / previously / currently attempted* (see `04_Academic_Rules_Engine.md` §18) and for evaluating the failed-course recovery window. In Simple Mode a student may have current state without detailed attempt history; in Advanced Mode, attempts are recorded per term.
++
++### 14.3 Semester GPA
++
++The semester GPA is recorded **per academic term** (a semester record), not on an individual course:
+ 
+ ```text
++student
++academic_term
+ semester_gpa
+ ```
+ 
+-when using Advanced Setup.
+-
+-Individual course grades are not required.
++Semester GPA is entered only in Advanced Setup. Individual course grades are never collected, and GPA is never calculated from them.
+ 
+ ---
+ 
+@@ -427,6 +435,8 @@ Requirement
+ Course / Course Group / Category
+ ```
+ 
++A requirement that targets a course category (for example, "complete N units of BASIC") must identify **which** category it applies to. The category names are the ones defined in §7 and preserved in `06_Curriculum_Dataset.md`.
++
+ ---
+ 
+ # 17. Practical Course Classification
+@@ -579,6 +589,3 @@ The academic validation behavior must be defined in:
+ The final technical implementation must follow:
+ 
+ `09_Technical_Requirements.md`
+-
+-```
+-```
+diff --git a/docs/06_Curriculum_Dataset.md b/docs/06_Curriculum_Dataset.md
+index fa88378..51eadfb 100644
+--- a/docs/06_Curriculum_Dataset.md
++++ b/docs/06_Curriculum_Dataset.md
+@@ -1,4 +1,3 @@
+-````md
+ # UnitControl — Curriculum Dataset
+ 
+ **Version:** 1.0  
+@@ -38,18 +37,33 @@ Database implementation is defined in:
+ 
+ # 2. Curriculum Versions
+ 
+-UnitControl currently supports:
++UnitControl currently supports three distinct curricula. The **major** is Computer Engineering in all three; they differ by **entry year** and **orientation**.
+ 
+-| Curriculum | Entry Year | Orientation |
+-|---|---:|---|
+-| Computer Engineering — Software Engineering | 1402 and before | Software Engineering |
+-| Computer Engineering — Information Technology | 1402 and before | Information Technology |
+-| Computer Engineering | 1403 and after | Unified |
++| Curriculum | Major | Entry Year | Orientation |
++|---|---|---:|---|
++| Computer Engineering — Software Engineering | Computer Engineering | 1402 and before | Software Engineering |
++| Computer Engineering — Information Technology | Computer Engineering | 1402 and before | Information Technology |
++| Computer Engineering — Unified | Computer Engineering | 1403 and after | Unified |
++
++Software Engineering and Information Technology are orientations, not separate majors (see `01_Product_Overview.md` §5 and `04_Academic_Rules_Engine.md` §15).
+ 
+ ---
+ 
+ # 3. Pre-1403 Curriculum
+ 
++The pre-1403 data below defines **two** curricula that share most sections:
++
++- **Software Engineering** orientation: the shared sections (3.1 Common Core, 3.2 Specialized Selective, 3.3 Elective, 3.4 Preparatory, 3.7 Basic, 3.8 General) **plus** the Software Engineering Specialization (3.5).
++- **Information Technology** orientation: the same shared sections **plus** the Information Technology Specialization (3.6).
++
++Sections 3.5 and 3.6 are orientation-specific and belong to their respective curriculum only. The exact assignment of each shared section to each orientation:
++
++```text
++TBD — Requires official academic verification
++```
++
++Course-level unit values and `total_required_units` per curriculum are not supplied (see §7, §9).
++
+ ## 3.1 Common Core — 59 Units
+ 
+ | Course | Code |
+@@ -409,16 +423,31 @@ Semester values:
+ 
+ The following values were supplied directly and should **not be silently changed**.
+ 
+-### Duplicate Course Code
++### Duplicate Course Codes
+ 
+-The 1403+ elective list contains:
++**(a)** The 1403+ elective list contains two different courses sharing one code:
+ 
+ ```text
+-مفاهیم پیشرفته  → 7000031598
++مفاهیم پیشرفته   → 7000031598
+ مفاهیم پیشرفته 2 → 7000031598
+ ```
+ 
+-This requires verification before production use.
++**(b)** In the 1403+ dataset, the same code is used for two different courses across two categories:
++
++```text
++مدیریت پروژه (Specialized Selective §4.2)                          → 7000031588
++مدیریت و برنامه ریزی راهبردی فناوری اطلاعات (Elective §4.4)          → 7000031588
++```
++
++Note also that the code `7000031571` does not appear anywhere in the dataset, so the intended code for one of the two courses above cannot be inferred.
++
++Both duplicate-code cases:
++
++```text
++TBD — Requires official academic verification
++```
++
++The correct codes must not be guessed. The supplied values are preserved as-is.
+ 
+ ### Category Duplication
+ 
+@@ -433,7 +462,9 @@ under both:
+ * Specialized Required
+ * Basic
+ 
+-This also requires verification.
++```text
++TBD — Requires official academic verification
++```
+ 
+ ### Unit Values
+ 
+@@ -501,6 +532,3 @@ Technical implementation is defined in:
+ The final implementation instructions are defined in:
+ 
+ `10_Claude_Master_Prompt.md`
+-
+-```
+-```
+diff --git a/docs/07_Database_Schema.md b/docs/07_Database_Schema.md
+index 6d087d3..9b8a992 100644
+--- a/docs/07_Database_Schema.md
++++ b/docs/07_Database_Schema.md
+@@ -1,4 +1,3 @@
+-````md
+ # UnitControl — Database Schema
+ 
+ **Version:** 1.0  
+@@ -69,7 +68,9 @@ Course
+ 
+ Student
+  │
+- ├── Student Course States
++ ├── Student Course States (current)
++ │
++ ├── Student Course Attempts (history)
+  │
+  └── Semester Records
+ ````
+@@ -212,7 +213,6 @@ curriculum_courses
+ - course_id
+ - category
+ - required
+-- elective_group_id
+ - created_at
+ - updated_at
+ ```
+@@ -226,6 +226,8 @@ courses    1 ─── N curriculum_courses
+ 
+ This allows the same course to have different roles in different curricula.
+ 
++Membership of a course in a course/elective group is **not** stored here. It is stored only in `course_group_courses` (§10), which is the single source of truth for group membership.
++
+ ---
+ 
+ # 9. Course Groups
+@@ -292,6 +294,7 @@ curriculum_requirements
+ - curriculum_id
+ - requirement_type
+ - name
++- category
+ - required_units
+ - minimum_practical_units
+ - course_group_id
+@@ -309,6 +312,8 @@ PRACTICAL_UNITS
+ COURSE_GROUP
+ ```
+ 
++`category` is set for a `CATEGORY_UNITS` requirement to identify which course category it targets (the category values defined in `05_Curriculum_Data_Model.md` §7). `course_group_id` is set for a `COURSE_GROUP` requirement. Fields not relevant to a given `requirement_type` are left empty.
++
+ The exact requirements come from the curriculum dataset.
+ 
+ ---
+@@ -382,7 +387,11 @@ The original university term code should be preserved.
+ 
+ # 14. Student Course States
+ 
+-Stores the student's current or historical relationship with a course.
++The student's relationship with a course is stored in two tables: current state and attempt history. This mirrors the logical model in `05_Curriculum_Data_Model.md` §14.
++
++## 14.1 Current Course State (`student_courses`)
++
++Stores the student's **current** status for a course. One row per student + course.
+ 
+ ### Fields
+ 
+@@ -392,7 +401,7 @@ student_courses
+ - student_id
+ - course_id
+ - status
+-- academic_term_id
++- academic_term_id      (nullable)
+ - created_at
+ - updated_at
+ ```
+@@ -407,6 +416,27 @@ CURRENTLY_STUDYING
+ PLANNED
+ ```
+ 
++`academic_term_id` is nullable: it is unused in Simple Mode, and for `PLANNED` it holds the intended term. A `PLANNED` row is **temporary planning** and is distinct from persistent history (§14.2).
++
++## 14.2 Course Attempt History (`student_course_attempts`)
++
++Stores **actual** past and in-progress attempts of a course. A student may attempt a course more than once (fail, then retake), so **multiple rows** per student + course are allowed.
++
++### Fields
++
++```text
++student_course_attempts
++- id
++- student_id
++- course_id
++- academic_term_id
++- result                (PASSED | FAILED | CURRENTLY_STUDYING)
++- created_at
++- updated_at
++```
++
++This table is the authoritative source for distinguishing *never / previously / currently attempted* (`04_Academic_Rules_Engine.md` §18) and for evaluating the failed-course recovery window. It is populated primarily in Advanced Mode; in Simple Mode it may be empty while current state (§14.1) still exists.
++
+ ### Notes
+ 
+ The curriculum itself must never be modified when a student changes a course status.
+@@ -439,19 +469,14 @@ UnitControl does not calculate it from individual course grades.
+ 
+ # 16. Student Course Planning
+ 
+-The `student_courses` structure can represent planned courses through:
++Planned courses are represented in `student_courses` (§14.1) through:
+ 
+ ```text
+ status = PLANNED
++academic_term_id = intended term
+ ```
+ 
+-and:
+-
+-```text
+-academic_term_id
+-```
+-
+-This allows the system to know which semester the student plans to take a course.
++Planning is **temporary**: a plan may be added, changed, or removed freely and is never written to `student_course_attempts`. Attempt history (§14.2) records only courses the student has actually taken. This keeps temporary planning cleanly separated from persistent academic history.
+ 
+ Temporary university add/drop history is outside the current scope.
+ 
+@@ -468,10 +493,10 @@ A student may have:
+ ```text
+ student_courses
+ - status
+-- no historical academic term
++- academic_term_id = null   (term not required)
+ ```
+ 
+-where term information is not required.
++Attempt history and semester records are not required in Simple Mode.
+ 
+ ### Advanced Mode
+ 
+@@ -482,6 +507,10 @@ student_courses
+ - status
+ - academic_term_id
+ 
++student_course_attempts
++- academic_term_id
++- result
++
+ student_semesters
+ - semester_gpa
+ ```
+@@ -519,6 +548,10 @@ student_profiles
+   │        │
+   │        └── academic_terms
+   │
++  ├── student_course_attempts ── courses
++  │        │
++  │        └── academic_terms
++  │
+   └── student_semesters ── academic_terms
+ ```
+ 
+@@ -594,6 +627,8 @@ The database should enforce:
+ * Valid curriculum assignments.
+ * No self-referencing course relationships unless explicitly required.
+ * No duplicate course relationship records.
++* Exactly one current-state row per student + course (`student_courses` unique on student + course).
++* Multiple attempt rows per student + course are allowed in `student_course_attempts`; a student should not have duplicate attempts for the same student + course + academic term.
+ 
+ ---
+ 
+@@ -637,6 +672,3 @@ The database implementation must remain consistent with:
+ and
+ 
+ `06_Curriculum_Dataset.md`.
+-
+-```
+-```
+diff --git a/docs/08_Admin_Panel.md b/docs/08_Admin_Panel.md
+index 5606880..fb88aaf 100644
+--- a/docs/08_Admin_Panel.md
++++ b/docs/08_Admin_Panel.md
+@@ -1,4 +1,3 @@
+-````md
+ # UnitControl — Admin Panel
+ 
+ **Version:** 1.0  
+@@ -428,6 +427,3 @@ The Admin Panel must remain consistent with:
+ `06_Curriculum_Dataset.md`
+ 
+ `07_Database_Schema.md`
+-
+-```
+-```
+diff --git a/docs/09_Technical_Requirements.md b/docs/09_Technical_Requirements.md
+index 5d3f5e3..5399c19 100644
+--- a/docs/09_Technical_Requirements.md
++++ b/docs/09_Technical_Requirements.md
+@@ -1,4 +1,3 @@
+-````md
+ # UnitControl — Technical Requirements
+ 
+ **Version:** 1.0  
+@@ -62,6 +61,8 @@ The frontend must support:
+ * Student profile management
+ * Admin Panel
+ 
++The frontend must support a **Persian (Farsi) right-to-left (RTL)** interface, since all curriculum data is Persian and academic terms use the university (Iranian) calendar format. Course names and codes must be rendered exactly as stored in `06_Curriculum_Dataset.md` and must not be translated or altered. Additional UI languages are out of scope for the initial version.
++
+ The interface must follow:
+ 
+ `03_UX_UI_Specification.md`
+@@ -161,7 +162,8 @@ The system must support:
+ * Course relationships
+ * Course groups
+ * Curriculum requirements
+-* Student course states
++* Student course states (current)
++* Course attempt history
+ * Academic terms
+ * Semester GPA
+ 
+@@ -551,6 +553,3 @@ Technology decisions should be finalized before implementation and then document
+ The final implementation must remain consistent with all previous project documents.
+ 
+ `10_Claude_Master_Prompt.md` will define how Claude should use this document together with the other project specifications.
+-
+-```
+-```
+diff --git a/docs/10_Claude_Master_Prompt.md b/docs/10_Claude_Master_Prompt.md
+index 5266c0c..3656896 100644
+--- a/docs/10_Claude_Master_Prompt.md
++++ b/docs/10_Claude_Master_Prompt.md
+@@ -1,4 +1,3 @@
+-````md
+ # UnitControl — Claude Master Prompt
+ 
+ **Version:** 1.0  
+@@ -764,7 +763,7 @@ Do not mark the academic engine as production-ready until these values are verif
+ 
+ The current dataset contains known items requiring verification.
+ 
+-### Duplicate Code
++### Duplicate Codes
+ 
+ ```text
+ مفاهیم پیشرفته
+@@ -774,6 +773,14 @@ The current dataset contains known items requiring verification.
+ 7000031598
+ ```
+ 
++```text
++مدیریت پروژه (Specialized Selective)
++7000031588
++
++مدیریت و برنامه ریزی راهبردی فناوری اطلاعات (Elective)
++7000031588
++```
++
+ ### Duplicate Curriculum Category
+ 
+ ```text
+@@ -785,7 +792,7 @@ appears under both Specialized Required and Basic in the supplied 1403+ dataset.
+ 
+ These must not be silently "fixed."
+ 
+-Verify them before production.
++Verify them before production. Full detail is in `06_Curriculum_Dataset.md` §7.
+ 
+ ---
+ 
+@@ -869,6 +876,3 @@ When uncertain, consult the relevant documentation first.
+ When the documentation does not provide the answer, stop and identify the missing decision rather than guessing.
+ 
+ The final implementation must remain consistent with all ten project documents.
+-
+-```
+-```
+-- 
+2.43.0
+

@@ -1,4 +1,3 @@
-````md
 # UnitControl — Curriculum Data Model
 
 **Version:** 1.0  
@@ -161,11 +160,13 @@ curriculum_id
 course_id
 category
 required
-elective_group_id
-required_units
 ```
 
 This allows the same course to have different roles in different curricula.
+
+Unit totals are not stored on the curriculum-course link. Course-level units belong to the course (see §5), and requirement totals belong to requirements and course groups (see §8, §16).
+
+Membership of a course in an elective/course group is represented by the course-group membership relation (see §8), not by a field on the curriculum-course link. This keeps a single, unambiguous source for group membership, consistent with `07_Database_Schema.md` §10.
 
 ---
 
@@ -210,13 +211,13 @@ A course group should contain:
 group_id
 curriculum_id
 name
+group_type
 required_units
 minimum_courses
 maximum_courses
-requirements
 ```
 
-A group may contain multiple eligible courses.
+A group may contain multiple eligible courses. The set of eligible courses is stored as a separate membership relation between the group and its courses (persisted as `course_group_courses` in `07_Database_Schema.md` §10).
 
 ---
 
@@ -350,38 +351,45 @@ The term identifier should preserve the original university format.
 
 # 14. Student Course State
 
-The curriculum defines courses.
+The curriculum defines courses. The student's interaction with those courses is represented separately, in three distinct concepts.
 
-The student's interaction with those courses is represented separately.
+### 14.1 Current Course State
 
-A student may have a state such as:
-
-```text
-NOT_COMPLETED
-PASSED
-FAILED
-CURRENTLY_STUDYING
-PLANNED
-```
-
-The data model should allow a student-course record to associate:
+The student's current status for a course. Exactly one current state per student + course:
 
 ```text
 student
 course
-status
-academic_term
+status        (NOT_COMPLETED | PASSED | FAILED | CURRENTLY_STUDYING | PLANNED)
+academic_term (optional)
 ```
 
-Additional academic-history information may include:
+For `PLANNED`, `academic_term` is the intended term. `PLANNED` is **temporary planning** and is distinct from persistent history (§14.2).
+
+### 14.2 Course Attempt History
+
+The record of actual past/current attempts of a course. A student may attempt a course more than once (e.g. fail, then retake), so this allows **multiple records** per student + course:
 
 ```text
+student
+course
+academic_term
+result        (PASSED | FAILED | CURRENTLY_STUDYING)
+```
+
+Attempt history is the basis for distinguishing *never / previously / currently attempted* (see `04_Academic_Rules_Engine.md` §18) and for evaluating the failed-course recovery window. In Simple Mode a student may have current state without detailed attempt history; in Advanced Mode, attempts are recorded per term.
+
+### 14.3 Semester GPA
+
+The semester GPA is recorded **per academic term** (a semester record), not on an individual course:
+
+```text
+student
+academic_term
 semester_gpa
 ```
 
-when using Advanced Setup.
-
-Individual course grades are not required.
+Semester GPA is entered only in Advanced Setup. Individual course grades are never collected, and GPA is never calculated from them.
 
 ---
 
@@ -426,6 +434,8 @@ Requirement
     ↓
 Course / Course Group / Category
 ```
+
+A requirement that targets a course category (for example, "complete N units of BASIC") must identify **which** category it applies to. The category names are the ones defined in §7 and preserved in `06_Curriculum_Dataset.md`.
 
 ---
 
@@ -579,6 +589,3 @@ The academic validation behavior must be defined in:
 The final technical implementation must follow:
 
 `09_Technical_Requirements.md`
-
-```
-```

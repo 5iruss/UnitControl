@@ -1,4 +1,3 @@
-````md
 # UnitControl — Admin Panel
 
 **Version:** 1.0  
@@ -428,6 +427,3 @@ The Admin Panel must remain consistent with:
 `06_Curriculum_Dataset.md`
 
 `07_Database_Schema.md`
-
-```
-```

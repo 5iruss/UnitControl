@@ -1,4 +1,3 @@
-````md
 # UnitControl — Database Schema
 
 **Version:** 1.0  
@@ -69,7 +68,9 @@ Course
 
 Student
  │
- ├── Student Course States
+ ├── Student Course States (current)
+ │
+ ├── Student Course Attempts (history)
  │
  └── Semester Records
 ````
@@ -212,7 +213,6 @@ curriculum_courses
 - course_id
 - category
 - required
-- elective_group_id
 - created_at
 - updated_at
 ```
@@ -225,6 +225,8 @@ courses    1 ─── N curriculum_courses
 ```
 
 This allows the same course to have different roles in different curricula.
+
+Membership of a course in a course/elective group is **not** stored here. It is stored only in `course_group_courses` (§10), which is the single source of truth for group membership.
 
 ---
 
@@ -292,6 +294,7 @@ curriculum_requirements
 - curriculum_id
 - requirement_type
 - name
+- category
 - required_units
 - minimum_practical_units
 - course_group_id
@@ -308,6 +311,8 @@ ELECTIVE_UNITS
 PRACTICAL_UNITS
 COURSE_GROUP
 ```
+
+`category` is set for a `CATEGORY_UNITS` requirement to identify which course category it targets (the category values defined in `05_Curriculum_Data_Model.md` §7). `course_group_id` is set for a `COURSE_GROUP` requirement. Fields not relevant to a given `requirement_type` are left empty.
 
 The exact requirements come from the curriculum dataset.
 
@@ -382,7 +387,11 @@ The original university term code should be preserved.
 
 # 14. Student Course States
 
-Stores the student's current or historical relationship with a course.
+The student's relationship with a course is stored in two tables: current state and attempt history. This mirrors the logical model in `05_Curriculum_Data_Model.md` §14.
+
+## 14.1 Current Course State (`student_courses`)
+
+Stores the student's **current** status for a course. One row per student + course.
 
 ### Fields
 
@@ -392,7 +401,7 @@ student_courses
 - student_id
 - course_id
 - status
-- academic_term_id
+- academic_term_id      (nullable)
 - created_at
 - updated_at
 ```
@@ -406,6 +415,27 @@ FAILED
 CURRENTLY_STUDYING
 PLANNED
 ```
+
+`academic_term_id` is nullable: it is unused in Simple Mode, and for `PLANNED` it holds the intended term. A `PLANNED` row is **temporary planning** and is distinct from persistent history (§14.2).
+
+## 14.2 Course Attempt History (`student_course_attempts`)
+
+Stores **actual** past and in-progress attempts of a course. A student may attempt a course more than once (fail, then retake), so **multiple rows** per student + course are allowed.
+
+### Fields
+
+```text
+student_course_attempts
+- id
+- student_id
+- course_id
+- academic_term_id
+- result                (PASSED | FAILED | CURRENTLY_STUDYING)
+- created_at
+- updated_at
+```
+
+This table is the authoritative source for distinguishing *never / previously / currently attempted* (`04_Academic_Rules_Engine.md` §18) and for evaluating the failed-course recovery window. It is populated primarily in Advanced Mode; in Simple Mode it may be empty while current state (§14.1) still exists.
 
 ### Notes
 
@@ -439,19 +469,14 @@ UnitControl does not calculate it from individual course grades.
 
 # 16. Student Course Planning
 
-The `student_courses` structure can represent planned courses through:
+Planned courses are represented in `student_courses` (§14.1) through:
 
 ```text
 status = PLANNED
+academic_term_id = intended term
 ```
 
-and:
-
-```text
-academic_term_id
-```
-
-This allows the system to know which semester the student plans to take a course.
+Planning is **temporary**: a plan may be added, changed, or removed freely and is never written to `student_course_attempts`. Attempt history (§14.2) records only courses the student has actually taken. This keeps temporary planning cleanly separated from persistent academic history.
 
 Temporary university add/drop history is outside the current scope.
 
@@ -468,10 +493,10 @@ A student may have:
 ```text
 student_courses
 - status
-- no historical academic term
+- academic_term_id = null   (term not required)
 ```
 
-where term information is not required.
+Attempt history and semester records are not required in Simple Mode.
 
 ### Advanced Mode
 
@@ -481,6 +506,10 @@ A student may have:
 student_courses
 - status
 - academic_term_id
+
+student_course_attempts
+- academic_term_id
+- result
 
 student_semesters
 - semester_gpa
@@ -516,6 +545,10 @@ courses
 student_profiles
   │
   ├── student_courses ── courses
+  │        │
+  │        └── academic_terms
+  │
+  ├── student_course_attempts ── courses
   │        │
   │        └── academic_terms
   │
@@ -594,6 +627,8 @@ The database should enforce:
 * Valid curriculum assignments.
 * No self-referencing course relationships unless explicitly required.
 * No duplicate course relationship records.
+* Exactly one current-state row per student + course (`student_courses` unique on student + course).
+* Multiple attempt rows per student + course are allowed in `student_course_attempts`; a student should not have duplicate attempts for the same student + course + academic term.
 
 ---
 
@@ -637,6 +672,3 @@ The database implementation must remain consistent with:
 and
 
 `06_Curriculum_Dataset.md`.
-
-```
-```

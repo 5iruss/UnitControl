@@ -1,4 +1,3 @@
-````md
 # UnitControl — User Flow
 
 **Version:** 1.0
@@ -460,6 +459,3 @@ Detailed administrative functionality is defined in:
 * Do not duplicate academic rules inside the user flow.
 * Keep detailed UI behavior in `03_UX_UI_Specification.md`.
 * Keep academic logic in `04_Academic_Rules_Engine.md`.
-
-```
-```

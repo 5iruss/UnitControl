@@ -1,4 +1,3 @@
-````md
 # UnitControl — Academic Rules Engine
 
 **Version:** 1.0  
@@ -138,6 +137,12 @@ Until verified, the implementation must treat the exact counting mechanism as:
 TBD — Requires official academic verification
 ```
 
+Whether an **expired** failed course only warns, or actually **blocks** subsequent (dependent) courses, is also unresolved:
+
+```text
+TBD — Requires official academic verification
+```
+
 ---
 
 # 6. Corequisite Rule
@@ -157,6 +162,12 @@ The exact corequisite relationships must come from:
 `06_Curriculum_Dataset.md`
 
 The Rules Engine must not invent corequisite relationships.
+
+The precise enforcement semantics — whether a corequisite must be taken **in the same semester**, or **at the same time or earlier** — is not yet decided:
+
+```text
+TBD — Requires official academic verification
+```
 
 ---
 
@@ -342,20 +353,22 @@ The student's curriculum is determined from their academic profile.
 Relevant information includes:
 
 * Entry year.
-* Major.
+* Major (Computer Engineering for all supported curricula).
 * Orientation.
+
+Software Engineering and Information Technology are **orientations** of the Computer Engineering major, not separate majors. Curriculum assignment is driven by entry year plus orientation.
 
 The system must assign the correct curriculum version.
 
-Current curriculum groups:
+Current curriculum groups (major = Computer Engineering):
 
 ```text
 Entry Year <= 1402
-├── Software Engineering
-└── Information Technology
+├── Orientation: Software Engineering
+└── Orientation: Information Technology
 
 Entry Year >= 1403
-└── Computer Engineering
+└── Orientation: Unified
 ```
 
 The actual curriculum definitions are stored in:
@@ -685,6 +698,3 @@ AVAILABLE_WITH_WARNING
 The Rules Engine is responsible for determining the result.
 
 The UI is responsible only for presenting that result.
-
-```
-```

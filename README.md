@@ -1,3 +1,4 @@
+cd UnitControl
 # UnitControl
 
 **UnitControl** is a web-based academic planning system designed to help university students understand, manage, and plan their academic path.
