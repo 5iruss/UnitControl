@@ -172,6 +172,80 @@ export async function getAllCourseRelationships() {
   );
 }
 
+// ---------------------------------------------------------------------------
+// Academic-status read helpers (Phase 5).
+// ---------------------------------------------------------------------------
+
+/// Picks one real course that belongs to the given curriculum (by name),
+/// for use as a valid course reference in tests.
+export async function getCourseInCurriculum(curriculumName: string) {
+  return withClient(async (client) => {
+    const result = await client.query(
+      `SELECT c.id, c.course_code, c.name
+       FROM curriculum_courses cc
+       JOIN curricula cur ON cur.id = cc.curriculum_id
+       JOIN courses c ON c.id = cc.course_id
+       WHERE cur.name = $1
+       ORDER BY c.name
+       LIMIT 1`,
+      [curriculumName],
+    );
+    return result.rows[0] ?? null;
+  });
+}
+
+/// A second, distinct course from the same curriculum (for multi-course tests).
+export async function getAnotherCourseInCurriculum(curriculumName: string, excludeCourseId: string) {
+  return withClient(async (client) => {
+    const result = await client.query(
+      `SELECT c.id, c.course_code, c.name
+       FROM curriculum_courses cc
+       JOIN curricula cur ON cur.id = cc.curriculum_id
+       JOIN courses c ON c.id = cc.course_id
+       WHERE cur.name = $1 AND c.id != $2
+       ORDER BY c.name
+       LIMIT 1`,
+      [curriculumName, excludeCourseId],
+    );
+    return result.rows[0] ?? null;
+  });
+}
+
+export async function getStudentCourse(studentId: string, courseId: string) {
+  return withClient(async (client) => {
+    const result = await client.query(
+      `SELECT * FROM student_courses WHERE student_id = $1 AND course_id = $2 LIMIT 1`,
+      [studentId, courseId],
+    );
+    return result.rows[0] ?? null;
+  });
+}
+
+export async function getStudentCourseAttempts(studentId: string, courseId: string) {
+  return withClient(async (client) => {
+    const result = await client.query(
+      `SELECT sca.*, at.term_code FROM student_course_attempts sca
+       JOIN academic_terms at ON at.id = sca.academic_term_id
+       WHERE sca.student_id = $1 AND sca.course_id = $2`,
+      [studentId, courseId],
+    );
+    return result.rows;
+  });
+}
+
+export async function getStudentSemesterByTermCode(studentId: string, termCode: string) {
+  return withClient(async (client) => {
+    const result = await client.query(
+      `SELECT ss.* FROM student_semesters ss
+       JOIN academic_terms at ON at.id = ss.academic_term_id
+       WHERE ss.student_id = $1 AND at.term_code = $2
+       LIMIT 1`,
+      [studentId, termCode],
+    );
+    return result.rows[0] ?? null;
+  });
+}
+
 export async function getCourseGroupCoursesByGroupId(courseGroupId: string) {
   return withClient(
     async (client) =>

@@ -53,6 +53,19 @@ async function loginAsSeededStudent(
   await page.getByRole("button", { name: "Log in" }).click();
 }
 
+// Since Phase 5, profile creation lands on /academic-setup rather than
+// /dashboard directly (docs/02_User_Flow.md §2, §5). Tests that need actual
+// dashboard UI (logout, "Manage academic profile" link) must complete the
+// one-time academic setup step first; Simple Mode with no statuses entered
+// is sufficient to unlock it.
+async function completeAcademicSetup(page: Page) {
+  await expect(page).toHaveURL("/academic-setup");
+  await page.getByRole("link", { name: "Start Simple Mode" }).click();
+  await expect(page).toHaveURL("/academic-status");
+  await page.getByRole("button", { name: "Continue to dashboard" }).click();
+  await expect(page).toHaveURL("/dashboard");
+}
+
 test.describe("academic profile creation", () => {
   test("student is routed to profile setup after registration, then to the dashboard", async ({
     page,
@@ -67,7 +80,7 @@ test.describe("academic profile creation", () => {
     });
     await page.getByRole("button", { name: "Continue" }).click();
 
-    await expect(page).toHaveURL("/dashboard");
+    await completeAcademicSetup(page);
     await expect(page.getByText("Welcome, Sara Ahmadi.")).toBeVisible();
 
     await page.getByRole("button", { name: "Log out" }).click();
@@ -84,7 +97,7 @@ test.describe("academic profile creation", () => {
       studyType: "Full-time",
     });
     await page.getByRole("button", { name: "Continue" }).click();
-    await expect(page).toHaveURL("/dashboard");
+    await expect(page).toHaveURL("/academic-setup");
 
     const user = await getUserByStudentNumber(studentNumber);
     const profile = await getStudentProfileByUserId(user.id);
@@ -134,7 +147,7 @@ test.describe("academic profile creation", () => {
       studyType: "Full-time",
     });
     await page.getByRole("button", { name: "Continue" }).click();
-    await expect(page).toHaveURL("/dashboard");
+    await expect(page).toHaveURL("/academic-setup");
 
     await page.goto("/profile/setup");
     await expect(page).toHaveURL("/profile");
@@ -151,7 +164,7 @@ test.describe("academic profile updates", () => {
       studyType: "Full-time",
     });
     await page.getByRole("button", { name: "Continue" }).click();
-    await expect(page).toHaveURL("/dashboard");
+    await completeAcademicSetup(page);
 
     await page.getByRole("link", { name: "Manage academic profile" }).click();
     await expect(page).toHaveURL("/profile");
@@ -174,7 +187,7 @@ test.describe("academic profile updates", () => {
       studyType: "Full-time",
     });
     await page.getByRole("button", { name: "Continue" }).click();
-    await expect(page).toHaveURL("/dashboard");
+    await completeAcademicSetup(page);
 
     await page.goto("/profile");
     await fillProfileForm(page, {
@@ -213,7 +226,7 @@ test.describe("academic profile updates", () => {
       studyType: "Full-time",
     });
     await page.getByRole("button", { name: "Continue" }).click();
-    await expect(page).toHaveURL("/dashboard");
+    await expect(page).toHaveURL("/academic-setup");
 
     const profileBefore = await getStudentProfileByUserId(userId);
     await seedStudentCourse(profileBefore.id, course.id);
@@ -273,7 +286,7 @@ test.describe("access control", () => {
       studyType: "Full-time",
     });
     await page.getByRole("button", { name: "Continue" }).click();
-    await expect(page).toHaveURL("/dashboard");
+    await completeAcademicSetup(page);
 
     const userA = await getUserByStudentNumber(studentA);
     const profileABefore = await getStudentProfileByUserId(userA.id);
@@ -291,7 +304,7 @@ test.describe("access control", () => {
       studyType: "Full-time",
     });
     await page.getByRole("button", { name: "Continue" }).click();
-    await expect(page).toHaveURL("/dashboard");
+    await completeAcademicSetup(page);
 
     // Student A's profile must be completely unaffected by Student B's action.
     const profileAAfter = await getStudentProfileByUserId(userA.id);

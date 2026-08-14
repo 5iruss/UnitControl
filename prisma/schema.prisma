@@ -158,15 +158,22 @@ model AuditLog {
 // ---------------------------------------------------------------------------
 
 model StudentProfile {
-  id           String    @id @default(cuid())
-  userId       String    @unique @map("user_id")
-  entryYear    Int       @map("entry_year")
-  major        String
-  orientation  String
-  studyType    StudyType @map("study_type")
-  curriculumId String    @map("curriculum_id")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
+  id                       String    @id @default(cuid())
+  userId                   String    @unique @map("user_id")
+  entryYear                Int       @map("entry_year")
+  major                    String
+  orientation              String
+  studyType                StudyType @map("study_type")
+  curriculumId             String    @map("curriculum_id")
+  /// Nullable: set once the student finishes the one-time Academic Setup
+  /// step (docs/02_User_Flow.md §2, §5). Not part of docs/07_Database_Schema.md
+  /// — implementation infrastructure for routing, not academic data. Cleared
+  /// back to null when a curriculum-changing profile update resets course-
+  /// status data, so the student is routed back through setup
+  /// (docs/02_User_Flow.md §13 step 6).
+  academicSetupCompletedAt DateTime? @map("academic_setup_completed_at")
+  createdAt                DateTime  @default(now()) @map("created_at")
+  updatedAt                DateTime  @updatedAt @map("updated_at")
 
   user       User       @relation(fields: [userId], references: [id])
   curriculum Curriculum @relation(fields: [curriculumId], references: [id])

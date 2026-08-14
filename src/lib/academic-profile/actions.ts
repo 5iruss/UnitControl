@@ -58,7 +58,8 @@ export async function createProfileAction(
     },
   });
 
-  redirect("/dashboard");
+  // docs/02_User_Flow.md §2 — Academic Profile -> Academic Setup next.
+  redirect("/academic-setup");
 }
 
 // docs/02_User_Flow.md §13, docs/03_UX_UI_Specification.md §20 — editing the
@@ -101,9 +102,18 @@ export async function updateProfileAction(
       prisma.studentCourse.deleteMany({ where: { studentId: profile.id } }),
       prisma.studentCourseAttempt.deleteMany({ where: { studentId: profile.id } }),
       prisma.studentSemester.deleteMany({ where: { studentId: profile.id } }),
+      // docs/02_User_Flow.md §13 step 6 — the student must reconfigure their
+      // academic status after a curriculum-changing reset.
       prisma.studentProfile.update({
         where: { id: profile.id },
-        data: { entryYear, major, orientation, studyType, curriculumId: curriculum.id },
+        data: {
+          entryYear,
+          major,
+          orientation,
+          studyType,
+          curriculumId: curriculum.id,
+          academicSetupCompletedAt: null,
+        },
       }),
     ]);
 
