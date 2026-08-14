@@ -131,3 +131,55 @@ export async function countStudentCourses(studentProfileId: string) {
     return result.rows[0].count as number;
   });
 }
+
+// ---------------------------------------------------------------------------
+// Curriculum-data read helpers (Phase 4).
+// ---------------------------------------------------------------------------
+
+export async function getAllCurricula() {
+  return withClient(async (client) => (await client.query(`SELECT * FROM curricula`)).rows);
+}
+
+export async function getAllCourses() {
+  return withClient(async (client) => (await client.query(`SELECT * FROM courses`)).rows);
+}
+
+export async function getAllCurriculumCourses() {
+  return withClient(
+    async (client) => (await client.query(`SELECT * FROM curriculum_courses`)).rows,
+  );
+}
+
+export async function getAllCourseGroups() {
+  return withClient(async (client) => (await client.query(`SELECT * FROM course_groups`)).rows);
+}
+
+export async function getAllCourseGroupCourses() {
+  return withClient(
+    async (client) => (await client.query(`SELECT * FROM course_group_courses`)).rows,
+  );
+}
+
+export async function getAllCurriculumRequirements() {
+  return withClient(
+    async (client) => (await client.query(`SELECT * FROM curriculum_requirements`)).rows,
+  );
+}
+
+export async function getAllCourseRelationships() {
+  return withClient(
+    async (client) => (await client.query(`SELECT * FROM course_relationships`)).rows,
+  );
+}
+
+export async function getCourseGroupCoursesByGroupId(courseGroupId: string) {
+  return withClient(
+    async (client) =>
+      (
+        await client.query(
+          `SELECT c.* FROM course_group_courses gc JOIN courses c ON c.id = gc.course_id WHERE gc.course_group_id = $1`,
+          [courseGroupId],
+        )
+      ).rows,
+  );
+}

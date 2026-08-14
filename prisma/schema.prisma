@@ -211,7 +211,10 @@ model Curriculum {
 
 model Course {
   id          String   @id @default(cuid())
-  courseCode  String   @unique @map("course_code")
+  /// Not globally unique: docs/06_Curriculum_Dataset.md §7 documents two
+  /// cases where the same course_code is supplied for two different course
+  /// names (must be preserved as-is, not corrected). Indexed, not @unique.
+  courseCode  String   @map("course_code")
   name        String
   /// TBD in the dataset — docs/06_Curriculum_Dataset.md §7. Nullable until verified.
   credits     Int?
@@ -230,6 +233,7 @@ model Course {
   sourceRelationships CourseRelationship[] @relation("SourceCourse")
   targetRelationships CourseRelationship[] @relation("TargetCourse")
 
+  @@index([courseCode])
   @@map("courses")
 }
 
@@ -273,6 +277,9 @@ model CourseGroup {
   courseGroupCourses CourseGroupCourse[]
   requirements       CurriculumRequirement[]
 
+  /// Lets the seed process upsert idempotently (task Phase 4 §9: safe to run
+  /// repeatedly, no duplicates).
+  @@unique([curriculumId, name])
   @@map("course_groups")
 }
 
@@ -309,6 +316,9 @@ model CurriculumRequirement {
   curriculum  Curriculum   @relation(fields: [curriculumId], references: [id])
   courseGroup CourseGroup? @relation(fields: [courseGroupId], references: [id])
 
+  /// Lets the seed process upsert idempotently (task Phase 4 §9: safe to run
+  /// repeatedly, no duplicates).
+  @@unique([curriculumId, requirementType, name])
   @@map("curriculum_requirements")
 }
 
