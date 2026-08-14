@@ -1,0 +1,72 @@
+// Uses `pg` directly rather than the generated Prisma Client: Prisma 7's
+// "prisma-client" generator emits ESM-only TypeScript source, which
+// Playwright's CJS-oriented TS loader cannot import from files under
+// src/generated/ (that directory's nearest package.json is the project
+// root, which is CommonJS by default). Raw SQL is simple enough here since
+// this file only seeds/reads a couple of rows for test setup/assertions.
+import { config } from "dotenv";
+config({ path: ".env.test", quiet: true });
+
+import { Client } from "pg";
+import bcrypt from "bcryptjs";
+import { randomUUID } from "crypto";
+
+async function withClient<T>(fn: (client: Client) => Promise<T>): Promise<T> {
+  const client = new Client({ connectionString: process.env.DATABASE_URL });
+  await client.connect();
+  try {
+    return await fn(client);
+  } finally {
+    await client.end();
+  }
+}
+
+export function uniqueId(prefix: string): string {
+  return `${prefix}-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+}
+
+type Role = "SUPER_ADMIN" | "SUPPORT" | "ACADEMIC_GROUP_MANAGER";
+
+export async function seedAdmin(role: Role) {
+  const studentNumber = uniqueId(role.toLowerCase());
+  const password = "AdminPass123!";
+  const passwordHash = await bcrypt.hash(password, 4);
+  const id = randomUUID();
+
+  await withClient((client) =>
+    client.query(
+      `INSERT INTO users (id, student_number, phone_number, password_hash, first_name, last_name, role, created_at, updated_at)
+       VALUES ($1, $2, NULL, $3, 'Test', $4, $5, NOW(), NOW())`,
+      [id, studentNumber, passwordHash, role, role],
+    ),
+  );
+
+  return { id, studentNumber, password };
+}
+
+export async function seedStudent() {
+  const studentNumber = uniqueId("student");
+  const password = "StudentPass123!";
+  const passwordHash = await bcrypt.hash(password, 4);
+  const id = randomUUID();
+
+  await withClient((client) =>
+    client.query(
+      `INSERT INTO users (id, student_number, phone_number, password_hash, first_name, last_name, role, created_at, updated_at)
+       VALUES ($1, $2, NULL, $3, 'Test', 'Student', 'STUDENT', NOW(), NOW())`,
+      [id, studentNumber, passwordHash],
+    ),
+  );
+
+  return { id, studentNumber, password };
+}
+
+export async function findAuditLog(target: string, action: string, adminId: string) {
+  return withClient(async (client) => {
+    const result = await client.query(
+      `SELECT * FROM audit_logs WHERE target = $1 AND action = $2 AND admin_id = $3 LIMIT 1`,
+      [target, action, adminId],
+    );
+    return result.rows[0] ?? null;
+  });
+}

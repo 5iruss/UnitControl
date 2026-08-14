@@ -107,8 +107,50 @@ model User {
   updatedAt     DateTime @updatedAt @map("updated_at")
 
   studentProfile StudentProfile?
+  sessions       Session[]
+  auditLogs      AuditLog[]
 
   @@map("users")
+}
+
+// ---------------------------------------------------------------------------
+// Sessions — implementation infrastructure for custom session-based
+// authentication (docs/09_Technical_Requirements.md §24 "Authentication").
+// Not part of docs/07_Database_Schema.md, which covers academic/domain data
+// only; this table is a technical-implementation addition.
+// ---------------------------------------------------------------------------
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  /// SHA-256 hash of the session token. The raw token is only ever held by
+  /// the client (httpOnly cookie); the DB never stores it in plain form.
+  tokenHash String   @unique @map("token_hash")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("sessions")
+}
+
+// ---------------------------------------------------------------------------
+// Audit log — docs/08_Admin_Panel.md §15: "An audit record should contain at
+// least: admin, action, target, timestamp." Scoped in Phase 2 to
+// authentication-related admin/support actions (e.g. support password
+// reset); broader admin-activity auditing is Admin Panel phase scope.
+// ---------------------------------------------------------------------------
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  adminId   String   @map("admin_id")
+  action    String
+  target    String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  admin User @relation(fields: [adminId], references: [id])
+
+  @@map("audit_logs")
 }
 
 // ---------------------------------------------------------------------------
