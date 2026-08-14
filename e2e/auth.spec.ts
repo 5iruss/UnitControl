@@ -7,7 +7,10 @@ function randomPhoneNumber(): string {
 }
 
 test.describe("student registration and login", () => {
-  test("register, land on dashboard, then log out", async ({ page }) => {
+  // docs/02_User_Flow.md §2 — Registration -> Academic Profile next (not the
+  // dashboard directly). The full registration -> profile -> dashboard ->
+  // logout journey is covered in academic-profile.spec.ts.
+  test("register creates a session and lands on academic profile setup", async ({ page }) => {
     const studentNumber = uniqueId("e2e-reg");
 
     await page.goto("/register");
@@ -18,11 +21,7 @@ test.describe("student registration and login", () => {
     await page.getByLabel("Phone number").fill(randomPhoneNumber());
     await page.getByRole("button", { name: "Create account" }).click();
 
-    await expect(page).toHaveURL("/dashboard");
-    await expect(page.getByText("Welcome, Sara Ahmadi.")).toBeVisible();
-
-    await page.getByRole("button", { name: "Log out" }).click();
-    await expect(page).toHaveURL("/login");
+    await expect(page).toHaveURL("/profile/setup");
   });
 
   test("registering with an existing student number shows an error", async ({ page }) => {
@@ -62,7 +61,9 @@ test.describe("student registration and login", () => {
     await page.getByLabel("Password").fill(password);
     await page.getByRole("button", { name: "Log in" }).click();
 
-    await expect(page).toHaveURL("/dashboard");
+    // A seeded student has no academic profile yet, so the dashboard guard
+    // (docs/02_User_Flow.md §2) routes them to profile setup first.
+    await expect(page).toHaveURL("/profile/setup");
   });
 
   test("a student account cannot use the administrative login", async ({ page }) => {
@@ -135,7 +136,9 @@ test.describe("admin / support authentication", () => {
     await page.getByLabel("Student number or phone number").fill(student.studentNumber);
     await page.getByLabel("Password").fill(newPassword);
     await page.getByRole("button", { name: "Log in" }).click();
-    await expect(page).toHaveURL("/dashboard");
+    // A seeded student has no academic profile yet, so the dashboard guard
+    // (docs/02_User_Flow.md §2) routes them to profile setup first.
+    await expect(page).toHaveURL("/profile/setup");
   });
 
   test("support cannot access the reset-password tool without authenticating", async ({

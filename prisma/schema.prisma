@@ -184,10 +184,13 @@ model StudentProfile {
 
 model Curriculum {
   id                 String           @id @default(cuid())
-  name               String
+  /// Unique so seeding/lookups can upsert by name (docs/06_Curriculum_Dataset.md §2).
+  name               String           @unique
   major              String
   orientation        String
-  entryYearFrom      Int              @map("entry_year_from")
+  /// Nullable: "entry year 1402 and before" (SE/IT) has no documented lower
+  /// bound (docs/06_Curriculum_Dataset.md §2) — null means unbounded below.
+  entryYearFrom      Int?             @map("entry_year_from")
   entryYearTo        Int?             @map("entry_year_to")
   totalRequiredUnits Int?             @map("total_required_units")
   status             CurriculumStatus @default(ACTIVE)

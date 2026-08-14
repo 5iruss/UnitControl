@@ -70,3 +70,64 @@ export async function findAuditLog(target: string, action: string, adminId: stri
     return result.rows[0] ?? null;
   });
 }
+
+export async function getUserByStudentNumber(studentNumber: string) {
+  return withClient(async (client) => {
+    const result = await client.query(`SELECT * FROM users WHERE student_number = $1 LIMIT 1`, [
+      studentNumber,
+    ]);
+    return result.rows[0] ?? null;
+  });
+}
+
+export async function getCurriculumByName(name: string) {
+  return withClient(async (client) => {
+    const result = await client.query(`SELECT * FROM curricula WHERE name = $1 LIMIT 1`, [name]);
+    return result.rows[0] ?? null;
+  });
+}
+
+export async function getStudentProfileByUserId(userId: string) {
+  return withClient(async (client) => {
+    const result = await client.query(
+      `SELECT * FROM student_profiles WHERE user_id = $1 LIMIT 1`,
+      [userId],
+    );
+    return result.rows[0] ?? null;
+  });
+}
+
+/// Seeds a throwaway course row (no curriculum, code, credits — just enough
+/// to satisfy the FK) so a StudentCourse row can be attached to it for the
+/// reset-cascade test.
+export async function seedCourse() {
+  const id = randomUUID();
+  const courseCode = uniqueId("course");
+  await withClient((client) =>
+    client.query(`INSERT INTO courses (id, course_code, name, created_at, updated_at)
+       VALUES ($1, $2, 'Test Course', NOW(), NOW())`, [id, courseCode]),
+  );
+  return { id, courseCode };
+}
+
+export async function seedStudentCourse(studentProfileId: string, courseId: string) {
+  const id = randomUUID();
+  await withClient((client) =>
+    client.query(
+      `INSERT INTO student_courses (id, student_id, course_id, status, created_at, updated_at)
+       VALUES ($1, $2, $3, 'NOT_COMPLETED', NOW(), NOW())`,
+      [id, studentProfileId, courseId],
+    ),
+  );
+  return { id };
+}
+
+export async function countStudentCourses(studentProfileId: string) {
+  return withClient(async (client) => {
+    const result = await client.query(
+      `SELECT count(*)::int AS count FROM student_courses WHERE student_id = $1`,
+      [studentProfileId],
+    );
+    return result.rows[0].count as number;
+  });
+}

@@ -56,7 +56,8 @@ export async function registerAction(
   });
 
   await createSession(user.id);
-  redirect("/dashboard");
+  // docs/02_User_Flow.md §2 — Registration -> Academic Profile next.
+  redirect("/profile/setup");
 }
 
 async function authenticate(identifier: string, password: string) {
