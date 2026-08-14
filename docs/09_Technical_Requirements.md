@@ -1,7 +1,7 @@
 # UnitControl — Technical Requirements
 
-**Version:** 1.0  
-**Status:** Initial Technical Specification
+**Version:** 1.1  
+**Status:** Technology Stack Finalized (§24)
 
 ---
 
@@ -40,7 +40,7 @@ Database
 
 The implementation should keep academic logic separate from UI components.
 
-The exact technology stack is **TBD** and should be selected before implementation.
+The technology stack is finalized in §24. UnitControl is implemented as a single Next.js full-stack application (no separate NestJS/Express backend), but the Academic Rules Engine is isolated in a framework-independent domain layer (`domain/academic/`) that does not import UI, database, or framework code — see §24 for the full rationale and boundary rules.
 
 ---
 
@@ -479,19 +479,78 @@ Secrets and credentials must be stored using environment configuration/secrets m
 
 # 24. Technology Stack
 
-The exact stack has not yet been finalized.
+The stack is finalized as follows.
 
-Before implementation, the selected stack must be documented and justified based on:
+### Application Framework
 
-* Project complexity
-* Interactive curriculum visualization
-* Maintainability
-* Developer productivity
-* Database requirements
-* Deployment simplicity
-* Long-term scalability
+* **Next.js (App Router) + React + TypeScript** — single full-stack application.
+* Route Handlers and Server Actions are used for backend logic instead of a separate NestJS/Express service.
+* Rationale: the project's scope does not justify a separate backend service. A single Next.js codebase reduces operational and deployment complexity while still allowing a clean internal separation of concerns (see "Domain Layer Isolation" below).
 
-The stack must not be selected merely because it is popular.
+### UI
+
+* **Tailwind CSS** for styling.
+* **shadcn/ui** for base UI components.
+* **@xyflow/react** for the interactive curriculum map — the core UI requirement is a graph of course nodes connected by prerequisite/corequisite edges (`03_UX_UI_Specification.md` §9–§12), which is exactly what this library is built for.
+
+### Database and Data Access
+
+* **PostgreSQL** — the domain is highly relational (curricula, courses, course relationships, requirements, student state; see `07_Database_Schema.md`), which fits a relational database rather than a document store.
+* **Prisma 7** (stable release channel, not Prisma Next/Early Access) as the ORM/schema layer.
+
+### Validation
+
+* **Zod** for input/schema validation at the application boundary (Server Actions, Route Handlers), per the server-side validation requirement in §18.
+
+### Authentication
+
+* Custom session-based authentication (no third-party auth provider). Matches `01_Product_Overview.md` §11 / `02_User_Flow.md` §3, §14: registration by student number, login by student number or phone number, password-based, no OTP.
+* Passwords hashed with a modern adaptive hash (e.g. argon2/bcrypt) — never stored in plain text.
+
+### Testing
+
+* **Vitest** for unit tests — primarily the Academic Rules Engine (`domain/academic/`), which must be independently testable per §32 of `10_Claude_Master_Prompt.md`.
+* **Playwright** for end-to-end tests of student and admin flows.
+
+### Package Manager
+
+* **pnpm**.
+
+### Domain Layer Isolation
+
+The Academic Rules Engine must remain framework-independent and independently unit-testable, per `04_Academic_Rules_Engine.md` and `10_Claude_Master_Prompt.md` §7, §36.
+
+```text
+domain/academic/
+```
+
+contains the academic decision-making logic:
+
+* Prerequisite validation
+* Corequisite validation
+* Failed-course rules
+* Credit limits
+* Semester validation
+* Course eligibility
+* Recommendations
+* Academic warnings
+
+Rules for this layer:
+
+* No imports from Next.js, React, Prisma, or any UI/framework/database package.
+* Pure functions/modules operating on plain domain types (curriculum, course, student state) passed in by the caller.
+* Route Handlers/Server Actions load data (via Prisma) and pass it into `domain/academic/`; the domain layer returns a validation result (`04_Academic_Rules_Engine.md` §20), which the caller then persists or returns to the frontend.
+* The frontend never computes academic eligibility itself; it only renders results produced by this layer (`09_Technical_Requirements.md` §4, §6).
+
+This decision was selected based on:
+
+* Project complexity — moderate; a single full-stack app is sufficient.
+* Interactive curriculum visualization — graph library requirement satisfied by @xyflow/react.
+* Maintainability — the domain-layer isolation keeps academic logic testable and framework-agnostic even though it lives inside the Next.js codebase.
+* Developer productivity — one codebase, one deployment unit.
+* Database requirements — PostgreSQL fits the highly relational schema in `07_Database_Schema.md`.
+* Deployment simplicity — a single Next.js application is simpler to deploy and operate than a split frontend/backend.
+* Long-term scalability — the domain layer's framework independence means the Rules Engine could be extracted into a separate service later without a rewrite, if ever needed.
 
 ---
 

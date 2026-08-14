@@ -1,0 +1,363 @@
+// UnitControl database schema.
+//
+// This file implements the logical schema defined in docs/07_Database_Schema.md
+// and docs/05_Curriculum_Data_Model.md. Table names, field names, and
+// relationships follow those documents. Do not add fields or constraints that
+// are not derived from the documentation (docs/10_Claude_Master_Prompt.md §6, §27).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+/// docs/07_Database_Schema.md §4 — "Roles should support at least student and
+/// administrative/support users." Admin roles per docs/08_Admin_Panel.md §2.
+enum Role {
+  STUDENT
+  SUPER_ADMIN
+  ACADEMIC_GROUP_MANAGER
+  SUPPORT
+}
+
+/// docs/04_Academic_Rules_Engine.md §13 — full-time vs part-time study types.
+enum StudyType {
+  FULL_TIME
+  PART_TIME
+}
+
+/// docs/07_Database_Schema.md §6, §22; docs/08_Admin_Panel.md §14 — archive
+/// instead of delete.
+enum CurriculumStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+/// docs/05_Curriculum_Data_Model.md §7.
+enum CourseCategory {
+  GENERAL
+  BASIC
+  SPECIALIZED_REQUIRED
+  SPECIALIZED_ELECTIVE
+  ELECTIVE
+  PREPARATORY
+  SKILLS_EMPLOYABILITY
+  ORIENTATION_SPECIALIZED
+}
+
+/// docs/07_Database_Schema.md §11.
+enum RequirementType {
+  TOTAL_UNITS
+  CATEGORY_UNITS
+  ELECTIVE_UNITS
+  PRACTICAL_UNITS
+  COURSE_GROUP
+}
+
+/// docs/05_Curriculum_Data_Model.md §10; docs/07_Database_Schema.md §12.
+enum RelationshipType {
+  PREREQUISITE
+  COREQUISITE
+}
+
+/// docs/04_Academic_Rules_Engine.md §17 — final digit of the term code.
+enum TermType {
+  MEHR
+  BAHMAN
+  SUMMER
+}
+
+/// docs/07_Database_Schema.md §14.1.
+enum CourseStatus {
+  NOT_COMPLETED
+  PASSED
+  FAILED
+  CURRENTLY_STUDYING
+  PLANNED
+}
+
+/// docs/07_Database_Schema.md §14.2.
+enum AttemptResult {
+  PASSED
+  FAILED
+  CURRENTLY_STUDYING
+}
+
+// ---------------------------------------------------------------------------
+// Users & authentication — docs/07_Database_Schema.md §4
+// ---------------------------------------------------------------------------
+
+model User {
+  id            String   @id @default(cuid())
+  studentNumber String   @unique @map("student_number")
+  phoneNumber   String?  @unique @map("phone_number")
+  passwordHash  String   @map("password_hash")
+  firstName     String   @map("first_name")
+  lastName      String   @map("last_name")
+  role          Role
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  studentProfile StudentProfile?
+
+  @@map("users")
+}
+
+// ---------------------------------------------------------------------------
+// Student profile — docs/07_Database_Schema.md §5
+// ---------------------------------------------------------------------------
+
+model StudentProfile {
+  id           String    @id @default(cuid())
+  userId       String    @unique @map("user_id")
+  entryYear    Int       @map("entry_year")
+  major        String
+  orientation  String
+  studyType    StudyType @map("study_type")
+  curriculumId String    @map("curriculum_id")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  user       User       @relation(fields: [userId], references: [id])
+  curriculum Curriculum @relation(fields: [curriculumId], references: [id])
+
+  studentCourses        StudentCourse[]
+  studentCourseAttempts StudentCourseAttempt[]
+  studentSemesters      StudentSemester[]
+
+  @@map("student_profiles")
+}
+
+// ---------------------------------------------------------------------------
+// Curricula — docs/07_Database_Schema.md §6
+// ---------------------------------------------------------------------------
+
+model Curriculum {
+  id                 String           @id @default(cuid())
+  name               String
+  major              String
+  orientation        String
+  entryYearFrom      Int              @map("entry_year_from")
+  entryYearTo        Int?             @map("entry_year_to")
+  totalRequiredUnits Int?             @map("total_required_units")
+  status             CurriculumStatus @default(ACTIVE)
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
+
+  studentProfiles   StudentProfile[]
+  curriculumCourses CurriculumCourse[]
+  courseGroups      CourseGroup[]
+  requirements      CurriculumRequirement[]
+
+  @@map("curricula")
+}
+
+// ---------------------------------------------------------------------------
+// Courses — docs/07_Database_Schema.md §7
+// ---------------------------------------------------------------------------
+
+model Course {
+  id          String   @id @default(cuid())
+  courseCode  String   @unique @map("course_code")
+  name        String
+  /// TBD in the dataset — docs/06_Curriculum_Dataset.md §7. Nullable until verified.
+  credits     Int?
+  /// Not enumerated by the documentation; preserved as supplied.
+  courseType  String?  @map("course_type")
+  /// Nullable: unknown/unverified until the dataset defines it (docs/05_Curriculum_Data_Model.md §17).
+  isPractical Boolean? @map("is_practical")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  curriculumCourses     CurriculumCourse[]
+  courseGroupCourses    CourseGroupCourse[]
+  studentCourses        StudentCourse[]
+  studentCourseAttempts StudentCourseAttempt[]
+
+  sourceRelationships CourseRelationship[] @relation("SourceCourse")
+  targetRelationships CourseRelationship[] @relation("TargetCourse")
+
+  @@map("courses")
+}
+
+// ---------------------------------------------------------------------------
+// Curriculum <-> Course link — docs/07_Database_Schema.md §8
+// ---------------------------------------------------------------------------
+
+model CurriculumCourse {
+  id           String         @id @default(cuid())
+  curriculumId String         @map("curriculum_id")
+  courseId     String         @map("course_id")
+  category     CourseCategory
+  required     Boolean
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+
+  curriculum Curriculum @relation(fields: [curriculumId], references: [id])
+  course     Course     @relation(fields: [courseId], references: [id])
+
+  @@unique([curriculumId, courseId])
+  @@map("curriculum_courses")
+}
+
+// ---------------------------------------------------------------------------
+// Course groups — docs/07_Database_Schema.md §9, §10
+// ---------------------------------------------------------------------------
+
+model CourseGroup {
+  id             String   @id @default(cuid())
+  curriculumId   String   @map("curriculum_id")
+  name           String
+  groupType      String   @map("group_type")
+  requiredUnits  Int?     @map("required_units")
+  minimumCourses Int?     @map("minimum_courses")
+  maximumCourses Int?     @map("maximum_courses")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  curriculum Curriculum @relation(fields: [curriculumId], references: [id])
+
+  courseGroupCourses CourseGroupCourse[]
+  requirements       CurriculumRequirement[]
+
+  @@map("course_groups")
+}
+
+model CourseGroupCourse {
+  id            String @id @default(cuid())
+  courseGroupId String @map("course_group_id")
+  courseId      String @map("course_id")
+
+  courseGroup CourseGroup @relation(fields: [courseGroupId], references: [id])
+  course      Course      @relation(fields: [courseId], references: [id])
+
+  @@unique([courseGroupId, courseId])
+  @@map("course_group_courses")
+}
+
+// ---------------------------------------------------------------------------
+// Curriculum requirements — docs/07_Database_Schema.md §11
+// ---------------------------------------------------------------------------
+
+model CurriculumRequirement {
+  id                    String          @id @default(cuid())
+  curriculumId          String          @map("curriculum_id")
+  requirementType       RequirementType @map("requirement_type")
+  name                  String
+  /// Set only when requirementType = CATEGORY_UNITS (docs/07_Database_Schema.md §11).
+  category              CourseCategory?
+  requiredUnits         Int?            @map("required_units")
+  minimumPracticalUnits Int?            @map("minimum_practical_units")
+  /// Set only when requirementType = COURSE_GROUP (docs/07_Database_Schema.md §11).
+  courseGroupId         String?         @map("course_group_id")
+  createdAt             DateTime        @default(now()) @map("created_at")
+  updatedAt             DateTime        @updatedAt @map("updated_at")
+
+  curriculum  Curriculum   @relation(fields: [curriculumId], references: [id])
+  courseGroup CourseGroup? @relation(fields: [courseGroupId], references: [id])
+
+  @@map("curriculum_requirements")
+}
+
+// ---------------------------------------------------------------------------
+// Course relationships — docs/07_Database_Schema.md §12
+// ---------------------------------------------------------------------------
+
+model CourseRelationship {
+  id               String           @id @default(cuid())
+  sourceCourseId   String           @map("source_course_id")
+  targetCourseId   String           @map("target_course_id")
+  relationshipType RelationshipType @map("relationship_type")
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+
+  sourceCourse Course @relation("SourceCourse", fields: [sourceCourseId], references: [id])
+  targetCourse Course @relation("TargetCourse", fields: [targetCourseId], references: [id])
+
+  @@unique([sourceCourseId, targetCourseId, relationshipType])
+  @@map("course_relationships")
+}
+
+// ---------------------------------------------------------------------------
+// Academic terms — docs/07_Database_Schema.md §13
+// ---------------------------------------------------------------------------
+
+model AcademicTerm {
+  id           String   @id @default(cuid())
+  /// Original university term code, preserved as supplied (e.g. "4051").
+  termCode     String   @unique @map("term_code")
+  academicYear Int      @map("academic_year")
+  termType     TermType @map("term_type")
+
+  studentCourses        StudentCourse[]
+  studentCourseAttempts StudentCourseAttempt[]
+  studentSemesters      StudentSemester[]
+
+  @@map("academic_terms")
+}
+
+// ---------------------------------------------------------------------------
+// Student course state — docs/07_Database_Schema.md §14
+// ---------------------------------------------------------------------------
+
+model StudentCourse {
+  id             String       @id @default(cuid())
+  studentId      String       @map("student_id")
+  courseId       String       @map("course_id")
+  status         CourseStatus
+  /// Nullable: unused in Simple Mode; holds the intended term for PLANNED.
+  academicTermId String?      @map("academic_term_id")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  student      StudentProfile @relation(fields: [studentId], references: [id])
+  course       Course         @relation(fields: [courseId], references: [id])
+  academicTerm AcademicTerm?  @relation(fields: [academicTermId], references: [id])
+
+  @@unique([studentId, courseId])
+  @@map("student_courses")
+}
+
+model StudentCourseAttempt {
+  id             String        @id @default(cuid())
+  studentId      String        @map("student_id")
+  courseId       String        @map("course_id")
+  academicTermId String        @map("academic_term_id")
+  result         AttemptResult
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  student      StudentProfile @relation(fields: [studentId], references: [id])
+  course       Course         @relation(fields: [courseId], references: [id])
+  academicTerm AcademicTerm   @relation(fields: [academicTermId], references: [id])
+
+  @@unique([studentId, courseId, academicTermId])
+  @@map("student_course_attempts")
+}
+
+// ---------------------------------------------------------------------------
+// Semester records — docs/07_Database_Schema.md §15
+// ---------------------------------------------------------------------------
+
+model StudentSemester {
+  id             String   @id @default(cuid())
+  studentId      String   @map("student_id")
+  academicTermId String   @map("academic_term_id")
+  semesterGpa    Decimal  @map("semester_gpa")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  student      StudentProfile @relation(fields: [studentId], references: [id])
+  academicTerm AcademicTerm   @relation(fields: [academicTermId], references: [id])
+
+  @@unique([studentId, academicTermId])
+  @@map("student_semesters")
+}
