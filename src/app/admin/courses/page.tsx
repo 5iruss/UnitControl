@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { STATUS_LABEL } from "@/app/admin/status-label";
 
 const COURSE_ROLES = ["SUPER_ADMIN", "ACADEMIC_GROUP_MANAGER"] as const;
 
@@ -56,7 +57,9 @@ export default async function AdminCoursesPage(props: PageProps<"/admin/courses"
                       {course.courseCode}
                     </span>
                   </span>
-                  {course.status !== "ACTIVE" && <Badge variant="outline">{course.status}</Badge>}
+                  {course.status !== "ACTIVE" && (
+                    <Badge variant="outline">{STATUS_LABEL[course.status] ?? course.status}</Badge>
+                  )}
                 </li>
               ))}
             </ul>

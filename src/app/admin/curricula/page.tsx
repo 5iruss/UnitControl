@@ -4,6 +4,7 @@ import { listCurricula } from "@/lib/admin/curricula/queries";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { STATUS_LABEL } from "@/app/admin/status-label";
 
 const CURRICULUM_ROLES = ["SUPER_ADMIN", "ACADEMIC_GROUP_MANAGER"] as const;
 
@@ -36,7 +37,9 @@ export default async function CurriculaPage() {
                       ({curriculum.major} — {curriculum.orientation})
                     </span>
                   </span>
-                  {curriculum.status !== "ACTIVE" && <Badge variant="outline">{curriculum.status}</Badge>}
+                  {curriculum.status !== "ACTIVE" && (
+                    <Badge variant="outline">{STATUS_LABEL[curriculum.status] ?? curriculum.status}</Badge>
+                  )}
                 </li>
               ))}
             </ul>

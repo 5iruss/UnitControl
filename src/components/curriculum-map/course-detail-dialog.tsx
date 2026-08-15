@@ -23,22 +23,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { AVAILABILITY_META, STATUS_META } from "./status-meta";
 
-const STATUS_OPTIONS: { value: CourseStatusValue; label: string }[] = [
-  { value: "NOT_COMPLETED", label: "Not completed" },
-  { value: "PASSED", label: "Passed" },
-  { value: "FAILED", label: "Failed" },
-  { value: "CURRENTLY_STUDYING", label: "Currently studying" },
-  { value: "PLANNED", label: "Planned" },
+// "Not completed" first (the reset option), then the shared status-meta.ts
+// order — labels/icons come from that single source, not redeclared here.
+const STATUS_OPTION_ORDER: CourseStatusValue[] = [
+  "NOT_COMPLETED",
+  "PASSED",
+  "FAILED",
+  "CURRENTLY_STUDYING",
+  "PLANNED",
 ];
-
+const STATUS_OPTIONS = STATUS_OPTION_ORDER.map((value) => ({
+  value,
+  label: STATUS_META[value].label,
+}));
 const STATUS_LABEL_BY_VALUE = new Map(STATUS_OPTIONS.map((o) => [o.value, o.label]));
-
-const AVAILABILITY_LABEL: Record<AvailabilityStatus, string> = {
-  AVAILABLE: "Available",
-  BLOCKED: "Blocked",
-  AVAILABLE_WITH_WARNING: "Available with warning",
-};
 
 const AVAILABILITY_BADGE_VARIANT: Record<AvailabilityStatus, "default" | "destructive" | "secondary"> = {
   AVAILABLE: "default",
@@ -100,6 +100,7 @@ export function CourseDetailDialog(props: CourseDetailDialogProps) {
   const [status, setStatus] = useState<CourseStatusValue>(presetStatus ?? currentStatus);
   const [termCode, setTermCode] = useState(currentTermCode ?? "");
   const [error, setError] = useState<string | null>(null);
+  const AvailabilityIcon = AVAILABILITY_META[availabilityStatus].icon;
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -133,7 +134,8 @@ export function CourseDetailDialog(props: CourseDetailDialogProps) {
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <Badge variant="outline">{categoryLabel}</Badge>
           <Badge variant={AVAILABILITY_BADGE_VARIANT[availabilityStatus]}>
-            {AVAILABILITY_LABEL[availabilityStatus]}
+            <AvailabilityIcon aria-hidden />
+            {AVAILABILITY_META[availabilityStatus].label}
           </Badge>
         </div>
 
@@ -201,11 +203,16 @@ export function CourseDetailDialog(props: CourseDetailDialogProps) {
                 placeholder="4051"
                 value={termCode}
                 onChange={(event) => setTermCode(event.target.value)}
+                dir="ltr"
               />
             </div>
           )}
 
-          {error && <p className="text-xs text-destructive">{error}</p>}
+          {error && (
+            <p className="text-xs text-destructive" role="alert">
+              {error}
+            </p>
+          )}
 
           <Button type="submit" disabled={isPending}>
             {isPending ? "Saving…" : "Save status"}

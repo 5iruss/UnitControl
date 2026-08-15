@@ -194,7 +194,7 @@ export function AddRequirementForm({ curriculumId, courseGroups }: AddRequiremen
           {isPending ? "Adding…" : "Add requirement"}
         </Button>
       </div>
-      {error && <p className="text-xs text-destructive">{error}</p>}
+      {error && <p className="text-xs text-destructive" role="alert">{error}</p>}
     </form>
   );
 }

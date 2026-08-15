@@ -12,15 +12,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { STATUS_META } from "@/components/curriculum-map/status-meta";
 
-const STATUS_OPTIONS: { value: CourseStatusValue; label: string }[] = [
-  { value: "NOT_COMPLETED", label: "Not completed" },
-  { value: "PASSED", label: "Passed" },
-  { value: "FAILED", label: "Failed" },
-  { value: "CURRENTLY_STUDYING", label: "Currently studying" },
-  { value: "PLANNED", label: "Planned" },
+// "Not completed" first (the reset option), matching the curriculum map's
+// course-detail dialog — labels come from the shared status-meta.ts source.
+const STATUS_OPTION_ORDER: CourseStatusValue[] = [
+  "NOT_COMPLETED",
+  "PASSED",
+  "FAILED",
+  "CURRENTLY_STUDYING",
+  "PLANNED",
 ];
-
+const STATUS_OPTIONS = STATUS_OPTION_ORDER.map((value) => ({
+  value,
+  label: STATUS_META[value].label,
+}));
 const STATUS_LABEL_BY_VALUE = new Map(STATUS_OPTIONS.map((o) => [o.value, o.label]));
 
 const initialState: AcademicStatusActionState = {};
@@ -51,7 +57,9 @@ export function CourseStatusRow({
       <input type="hidden" name="courseId" value={courseId} />
       <div className="flex-1 min-w-48">
         <p>{courseName}</p>
-        <p className="text-xs text-muted-foreground">{courseCode}</p>
+        <p className="font-mono text-xs text-muted-foreground" dir="ltr">
+          {courseCode}
+        </p>
       </div>
 
       <Select name="status" value={status} onValueChange={(value) => setStatus(value as CourseStatusValue)}>
@@ -76,6 +84,7 @@ export function CourseStatusRow({
           placeholder="4051"
           defaultValue={currentTermCode ?? ""}
           className="w-24"
+          dir="ltr"
         />
       )}
 
@@ -83,8 +92,16 @@ export function CourseStatusRow({
         {pending ? "Saving…" : "Save"}
       </Button>
 
-      {state.error && <p className="w-full text-xs text-destructive">{state.error}</p>}
-      {state.success && <p className="w-full text-xs text-green-600">{state.success}</p>}
+      {state.error && (
+        <p className="w-full text-xs text-destructive" role="alert">
+          {state.error}
+        </p>
+      )}
+      {state.success && (
+        <p className="w-full text-xs text-emerald-700 dark:text-emerald-400" role="status" aria-live="polite">
+          {state.success}
+        </p>
+      )}
     </form>
   );
 }

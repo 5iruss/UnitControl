@@ -57,7 +57,7 @@ export function CourseCreateForm() {
           </SelectContent>
         </Select>
       </div>
-      {state.error && <p className="text-sm text-destructive">{state.error}</p>}
+      {state.error && <p className="text-sm text-destructive" role="alert">{state.error}</p>}
       <Button type="submit" disabled={pending}>
         {pending ? "Creating…" : "Create course"}
       </Button>

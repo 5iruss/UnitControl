@@ -1,24 +1,11 @@
 // docs/05_Curriculum_Data_Model.md §7 — the eight documented course
 // categories, shared by curriculum-course membership and requirement forms
-// on this curriculum's admin pages.
-export const CATEGORY_OPTIONS = [
-  "PREPARATORY",
-  "GENERAL",
-  "BASIC",
-  "SPECIALIZED_REQUIRED",
-  "ORIENTATION_SPECIALIZED",
-  "SPECIALIZED_ELECTIVE",
-  "ELECTIVE",
-  "SKILLS_EMPLOYABILITY",
-] as const;
+// on this curriculum's admin pages. Re-exports the single source of truth
+// in the domain layer (also used by the curriculum map) instead of keeping
+// an independent copy that could drift out of sync.
+import { CATEGORY_LABELS, CATEGORY_ORDER } from "@/domain/curriculum-map";
 
-export const CATEGORY_LABEL: Record<string, string> = {
-  PREPARATORY: "Preparatory",
-  GENERAL: "General",
-  BASIC: "Basic",
-  SPECIALIZED_REQUIRED: "Specialized Required",
-  ORIENTATION_SPECIALIZED: "Orientation Specialization",
-  SPECIALIZED_ELECTIVE: "Specialized Selective",
-  ELECTIVE: "Elective",
-  SKILLS_EMPLOYABILITY: "Skills / Employability",
-};
+export const CATEGORY_OPTIONS = CATEGORY_ORDER;
+// Widened to Record<string, string> (rather than Record<CourseCategory, string>)
+// since call sites index it with plain-string values read from the DB/forms.
+export const CATEGORY_LABEL: Record<string, string> = CATEGORY_LABELS;

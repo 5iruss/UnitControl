@@ -1,5 +1,6 @@
 {
   "name": "unitcontrol",
+  "description": "Academic planning system for Computer Engineering students.",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -10,7 +11,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "postinstall": "prisma generate",
     "db:migrate": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
     "db:generate": "prisma generate",
     "db:studio": "prisma studio",
     "db:seed": "prisma db seed",

@@ -16,7 +16,7 @@ export function RegisterForm() {
     <form action={formAction} className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
         <Label htmlFor="studentNumber">Student number</Label>
-        <Input id="studentNumber" name="studentNumber" required autoComplete="username" />
+        <Input id="studentNumber" name="studentNumber" required autoComplete="username" dir="ltr" />
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor="password">Password</Label>
@@ -44,9 +44,10 @@ export function RegisterForm() {
           placeholder="09123456789"
           required
           autoComplete="tel"
+          dir="ltr"
         />
       </div>
-      {state.error && <p className="text-sm text-destructive">{state.error}</p>}
+      {state.error && <p className="text-sm text-destructive" role="alert">{state.error}</p>}
       <Button type="submit" disabled={pending}>
         {pending ? "Creating account…" : "Create account"}
       </Button>

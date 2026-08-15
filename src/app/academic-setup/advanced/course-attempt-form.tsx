@@ -13,16 +13,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { STATUS_META } from "@/components/curriculum-map/status-meta";
 
 const initialState: AcademicStatusActionState = {};
 
-const RESULT_OPTIONS = [
-  { value: "PASSED", label: "Passed" },
-  { value: "FAILED", label: "Failed" },
-  { value: "CURRENTLY_STUDYING", label: "Currently studying" },
-];
+// Attempt results are a subset of the same course-status vocabulary
+// (status-meta.ts) — labels are derived from there, not redeclared, so this
+// list can never say something different than the map/planner/dashboard for
+// the identical statuses.
+const RESULT_OPTIONS = (["PASSED", "FAILED", "CURRENTLY_STUDYING"] as const).map((value) => ({
+  value,
+  label: STATUS_META[value].label,
+}));
 
-const RESULT_LABEL_BY_VALUE = new Map(RESULT_OPTIONS.map((o) => [o.value, o.label]));
+const RESULT_LABEL_BY_VALUE = new Map<string, string>(RESULT_OPTIONS.map((o) => [o.value, o.label]));
 
 interface CourseAttemptFormProps {
   termCode: string;
@@ -71,8 +75,16 @@ export function CourseAttemptForm({ termCode, courses }: CourseAttemptFormProps)
         {pending ? "Saving…" : "Add result"}
       </Button>
 
-      {state.error && <p className="w-full text-xs text-destructive">{state.error}</p>}
-      {state.success && <p className="w-full text-xs text-green-600">{state.success}</p>}
+      {state.error && (
+        <p className="w-full text-xs text-destructive" role="alert">
+          {state.error}
+        </p>
+      )}
+      {state.success && (
+        <p className="w-full text-xs text-emerald-700 dark:text-emerald-400" role="status" aria-live="polite">
+          {state.success}
+        </p>
+      )}
     </form>
   );
 }

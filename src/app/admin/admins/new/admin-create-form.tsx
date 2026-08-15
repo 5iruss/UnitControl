@@ -12,16 +12,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ADMIN_ROLE_OPTIONS, ROLE_LABEL } from "@/lib/admin/role-label";
 
 const initialState: AdminActionState = {};
 
-const ROLE_OPTIONS = [
-  { value: "SUPER_ADMIN", label: "Super Admin" },
-  { value: "ACADEMIC_GROUP_MANAGER", label: "Academic Group Manager" },
-  { value: "SUPPORT", label: "Support" },
-] as const;
-
-const ROLE_LABEL_BY_VALUE: Map<string, string> = new Map(ROLE_OPTIONS.map((o) => [o.value, o.label]));
+const ROLE_OPTIONS = ADMIN_ROLE_OPTIONS.map((value) => ({ value, label: ROLE_LABEL[value] }));
 
 export function AdminCreateForm() {
   const [state, formAction, pending] = useActionState(createAdminAction, initialState);
@@ -30,11 +25,11 @@ export function AdminCreateForm() {
     <form action={formAction} className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
         <Label htmlFor="studentNumber">Identifier (login number)</Label>
-        <Input id="studentNumber" name="studentNumber" required />
+        <Input id="studentNumber" name="studentNumber" required dir="ltr" />
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor="phoneNumber">Phone number (optional)</Label>
-        <Input id="phoneNumber" name="phoneNumber" placeholder="09123456789" />
+        <Input id="phoneNumber" name="phoneNumber" placeholder="09123456789" dir="ltr" />
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor="firstName">First name</Label>
@@ -53,7 +48,7 @@ export function AdminCreateForm() {
         <Select name="role" defaultValue="SUPPORT">
           <SelectTrigger id="role" aria-label="Role">
             <SelectValue placeholder="Select a role">
-              {(value: string) => ROLE_LABEL_BY_VALUE.get(value) ?? value}
+              {(value: string) => ROLE_LABEL[value as keyof typeof ROLE_LABEL] ?? value}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
@@ -65,7 +60,7 @@ export function AdminCreateForm() {
           </SelectContent>
         </Select>
       </div>
-      {state.error && <p className="text-sm text-destructive">{state.error}</p>}
+      {state.error && <p className="text-sm text-destructive" role="alert">{state.error}</p>}
       <Button type="submit" disabled={pending}>
         {pending ? "Creating…" : "Create administrator"}
       </Button>

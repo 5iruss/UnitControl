@@ -6,6 +6,8 @@ import { deleteRelationshipAction } from "@/lib/admin/relationships/actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ConfirmActionButton } from "@/components/admin/confirm-action-button";
+import { STATUS_LABEL } from "@/app/admin/status-label";
+import { CATEGORY_LABEL } from "@/app/admin/curricula/[id]/category-labels";
 import { CourseEditForm } from "./course-edit-form";
 import { AddRelationshipForm } from "./add-relationship-form";
 
@@ -30,7 +32,7 @@ export default async function CourseDetailPage(props: PageProps<"/admin/courses/
         <span className="font-mono text-sm text-muted-foreground" dir="ltr">
           {course.courseCode}
         </span>
-        <Badge variant="outline">{course.status}</Badge>
+        <Badge variant="outline">{STATUS_LABEL[course.status] ?? course.status}</Badge>
       </div>
 
       <Card>
@@ -59,7 +61,7 @@ export default async function CourseDetailPage(props: PageProps<"/admin/courses/
                     {cc.curriculum.name}
                   </Link>{" "}
                   <span className="text-xs text-muted-foreground">
-                    ({cc.category}, {cc.required ? "required" : "not required"})
+                    ({CATEGORY_LABEL[cc.category] ?? cc.category}, {cc.required ? "required" : "not required"})
                   </span>
                 </li>
               ))}

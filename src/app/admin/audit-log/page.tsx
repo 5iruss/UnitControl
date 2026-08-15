@@ -27,18 +27,18 @@ export default async function AuditLogPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b text-right text-xs text-muted-foreground">
-                    <th className="py-1 pr-2 font-normal">Action</th>
-                    <th className="py-1 pr-2 font-normal">Target</th>
-                    <th className="py-1 pr-2 font-normal">Admin</th>
-                    <th className="py-1 font-normal">Timestamp</th>
+                    <th scope="col" className="py-1 pe-2 font-normal">Action</th>
+                    <th scope="col" className="py-1 pe-2 font-normal">Target</th>
+                    <th scope="col" className="py-1 pe-2 font-normal">Admin</th>
+                    <th scope="col" className="py-1 font-normal">Timestamp</th>
                   </tr>
                 </thead>
                 <tbody>
                   {entries.map((entry) => (
                     <tr key={entry.id} className="border-b last:border-b-0">
-                      <td className="py-1.5 pr-2 font-medium">{entry.action}</td>
-                      <td className="py-1.5 pr-2">{entry.target}</td>
-                      <td className="py-1.5 pr-2 text-muted-foreground">
+                      <td className="py-1.5 pe-2 font-medium">{entry.action}</td>
+                      <td className="py-1.5 pe-2">{entry.target}</td>
+                      <td className="py-1.5 pe-2 text-muted-foreground">
                         {entry.admin.firstName} {entry.admin.lastName}
                       </td>
                       <td className="py-1.5 text-muted-foreground" dir="ltr">

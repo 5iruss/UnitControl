@@ -202,7 +202,11 @@ test.describe("curriculum management", () => {
       await selectOption(page, "Status", "Archived");
       await page.getByRole("button", { name: "Save changes" }).click();
 
-      await expect(page.getByText("ARCHIVED", { exact: true })).toBeVisible();
+      // Scoped to the header row (h1 + status badge): the edit form's own
+      // Status select also displays "Archived" as its current value, so an
+      // unscoped getByText would match both.
+      const headerRow = page.locator("h1").locator("..");
+      await expect(headerRow.getByText("Archived", { exact: true })).toBeVisible();
     } finally {
       await deleteCurriculum(curriculumId);
     }
@@ -275,7 +279,10 @@ test.describe("course management", () => {
 
     await selectOption(page, "Status", "Archived");
     await page.getByRole("button", { name: "Save changes" }).click();
-    await expect(page.getByText("ARCHIVED", { exact: true })).toBeVisible();
+    // Scoped to the header row: the edit form's own Status select also
+    // displays "Archived" as its current value.
+    const headerRow = page.locator("h1").locator("..");
+    await expect(headerRow.getByText("Archived", { exact: true })).toBeVisible();
     await deleteCourse(courseId);
   });
 

@@ -29,9 +29,13 @@ export default async function AcademicStatusPage() {
 
   return (
     <main className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
+      <h1 className="text-xl font-semibold">Course statuses</h1>
+
       <Card>
         <CardHeader>
-          <CardTitle>Course statuses</CardTitle>
+          <CardTitle>
+            {curriculumCourses.length} course{curriculumCourses.length === 1 ? "" : "s"}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col">

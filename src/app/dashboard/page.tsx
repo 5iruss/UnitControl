@@ -12,15 +12,10 @@ import { Badge } from "@/components/ui/badge";
 import { CurriculumMapView } from "@/components/curriculum-map/curriculum-map-view";
 import { SemesterPlanSection } from "@/components/semester-planning/semester-plan-section";
 import { RecommendationsPanel } from "@/components/recommendations/recommendations-panel";
+import { STATUS_META } from "@/components/curriculum-map/status-meta";
 import type { CourseStatus } from "@/domain/academic";
 
-const STATUS_STAT_LABELS: Record<CourseStatus, string> = {
-  PASSED: "Passed",
-  FAILED: "Failed",
-  CURRENTLY_STUDYING: "Currently studying",
-  PLANNED: "Planned",
-  NOT_COMPLETED: "Not completed",
-};
+const STATUS_ORDER = Object.keys(STATUS_META) as CourseStatus[];
 
 // docs/03_UX_UI_Specification.md §4 — the Dashboard is built around the
 // interactive curriculum map (Phase 7). Student info, filters, status
@@ -70,15 +65,18 @@ export default async function DashboardPage() {
 
   return (
     <main className="mx-auto flex max-w-6xl flex-col gap-4 p-4" dir="rtl">
+      <div className="flex flex-row flex-wrap items-center justify-between gap-2">
+        <h1 className="text-xl font-semibold">
+          Welcome, {user.firstName} {user.lastName}.
+        </h1>
+        <LogoutButton redirectTo="/login" />
+      </div>
+
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>
-            Welcome, {user.firstName} {user.lastName}.
-          </CardTitle>
-          <LogoutButton redirectTo="/login" />
-        </CardHeader>
         <CardContent className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted-foreground">
-          <span>Student number: {user.studentNumber}</span>
+          <span>
+            Student number: <span dir="ltr">{user.studentNumber}</span>
+          </span>
           <span>Entry year: {profile.entryYear}</span>
           <span>
             Major/orientation: {profile.major} — {profile.orientation}
@@ -89,11 +87,15 @@ export default async function DashboardPage() {
       </Card>
 
       <div className="flex flex-wrap gap-2">
-        {(Object.keys(STATUS_STAT_LABELS) as CourseStatus[]).map((status) => (
-          <Badge key={status} variant="outline">
-            {STATUS_STAT_LABELS[status]}: {statusCounts.get(status) ?? 0}
-          </Badge>
-        ))}
+        {STATUS_ORDER.map((status) => {
+          const StatusIcon = STATUS_META[status].icon;
+          return (
+            <Badge key={status} variant="outline">
+              <StatusIcon aria-hidden />
+              {STATUS_META[status].label}: {statusCounts.get(status) ?? 0}
+            </Badge>
+          );
+        })}
       </div>
 
       <Card>

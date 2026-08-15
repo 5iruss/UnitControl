@@ -5,6 +5,7 @@ import { getCurriculumDetail } from "@/lib/admin/curricula/queries";
 import { listActiveCoursesForPicker } from "@/lib/admin/courses/queries";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { STATUS_LABEL } from "@/app/admin/status-label";
 import { CurriculumEditForm } from "./curriculum-edit-form";
 import { CurriculumCourseRow } from "./curriculum-course-row";
 import { AddCurriculumCourseForm } from "./add-curriculum-course-form";
@@ -31,7 +32,7 @@ export default async function CurriculumDetailPage(props: PageProps<"/admin/curr
     <main className="mx-auto flex max-w-2xl flex-col gap-4 p-4">
       <div className="flex flex-wrap items-center gap-2">
         <h1 className="text-xl font-semibold">{curriculum.name}</h1>
-        <Badge variant="outline">{curriculum.status}</Badge>
+        <Badge variant="outline">{STATUS_LABEL[curriculum.status] ?? curriculum.status}</Badge>
       </div>
 
       <Card>

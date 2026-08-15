@@ -16,7 +16,7 @@ export function LoginForm() {
     <form action={formAction} className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
         <Label htmlFor="identifier">Student number or phone number</Label>
-        <Input id="identifier" name="identifier" required autoComplete="username" />
+        <Input id="identifier" name="identifier" required autoComplete="username" dir="ltr" />
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor="password">Password</Label>
@@ -28,7 +28,7 @@ export function LoginForm() {
           autoComplete="current-password"
         />
       </div>
-      {state.error && <p className="text-sm text-destructive">{state.error}</p>}
+      {state.error && <p className="text-sm text-destructive" role="alert">{state.error}</p>}
       <Button type="submit" disabled={pending}>
         {pending ? "Logging in…" : "Log in"}
       </Button>

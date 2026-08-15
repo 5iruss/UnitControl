@@ -104,7 +104,7 @@ export function AddCurriculumCourseForm({ curriculumId, courses }: AddCurriculum
         {isPending ? "Adding…" : "Add to curriculum"}
       </Button>
 
-      {error && <p className="w-full text-xs text-destructive">{error}</p>}
+      {error && <p className="w-full text-xs text-destructive" role="alert">{error}</p>}
     </form>
   );
 }

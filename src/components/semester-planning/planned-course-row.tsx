@@ -116,6 +116,7 @@ export function PlannedCourseRow({ course }: PlannedCourseRowProps) {
             value={moveTermCode}
             onChange={(event) => setMoveTermCode(event.target.value)}
             className="w-24"
+            dir="ltr"
           />
           <Button type="submit" size="sm" disabled={isMoving}>
             {isMoving ? "Moving…" : "Save new term"}
@@ -123,7 +124,11 @@ export function PlannedCourseRow({ course }: PlannedCourseRowProps) {
         </form>
       )}
 
-      {error && <p className="text-xs text-destructive">{error}</p>}
+      {error && (
+        <p className="text-xs text-destructive" role="alert">
+          {error}
+        </p>
+      )}
     </li>
   );
 }

@@ -5,19 +5,12 @@ import {
   Background,
   Controls,
   MarkerType,
+  MiniMap,
   ReactFlow,
   ReactFlowProvider,
   type Edge,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import {
-  Ban,
-  CalendarClock,
-  CheckCircle2,
-  Circle,
-  Clock,
-  XCircle,
-} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { AvailabilityStatus, CourseStatus } from "@/domain/academic";
 import type { CurriculumMapViewModel } from "@/domain/curriculum-map";
@@ -25,31 +18,30 @@ import type { CourseStatusValue } from "@/domain/academic-status";
 import { CourseNode, type CourseFlowNode } from "./course-node";
 import { CategoryLabelNode, type CategoryLabelFlowNode } from "./category-label-node";
 import { CourseDetailDialog, type DetailRelationship } from "./course-detail-dialog";
+import { AVAILABILITY_META, STATUS_META } from "./status-meta";
 
 const NODE_TYPES = { course: CourseNode, categoryLabel: CategoryLabelNode };
 
 type FlowNode = CourseFlowNode | CategoryLabelFlowNode;
 
-const STATUS_FILTER_OPTIONS: { value: CourseStatus; label: string; icon: typeof Circle }[] = [
-  { value: "PASSED", label: "Passed", icon: CheckCircle2 },
-  { value: "FAILED", label: "Failed", icon: XCircle },
-  { value: "CURRENTLY_STUDYING", label: "Currently studying", icon: Clock },
-  { value: "PLANNED", label: "Planned", icon: CalendarClock },
-  { value: "NOT_COMPLETED", label: "Not completed", icon: Circle },
-];
+// Derived from the shared status-meta.ts source (not redeclared here) so the
+// filter/toolbar labels can never drift from the map card / planner /
+// recommendations labels for the same statuses.
+const STATUS_ORDER = Object.keys(STATUS_META) as CourseStatus[];
+const STATUS_FILTER_OPTIONS = STATUS_ORDER.map((value) => ({
+  value,
+  label: STATUS_META[value].label,
+  icon: STATUS_META[value].icon,
+}));
+const TOOLBAR_STATUS_OPTIONS = STATUS_ORDER.map((value) => ({
+  value: value as CourseStatusValue,
+  label: STATUS_META[value].label,
+  icon: STATUS_META[value].icon,
+}));
 
-const AVAILABILITY_FILTER_OPTIONS: { value: AvailabilityStatus; label: string; icon: typeof Circle }[] = [
-  { value: "AVAILABLE", label: "Available", icon: CheckCircle2 },
-  { value: "BLOCKED", label: "Blocked", icon: Ban },
-];
-
-const TOOLBAR_STATUS_OPTIONS: { value: CourseStatusValue; label: string; icon: typeof Circle }[] = [
-  { value: "PASSED", label: "Passed", icon: CheckCircle2 },
-  { value: "FAILED", label: "Failed", icon: XCircle },
-  { value: "CURRENTLY_STUDYING", label: "Currently studying", icon: Clock },
-  { value: "PLANNED", label: "Planned", icon: CalendarClock },
-  { value: "NOT_COMPLETED", label: "Not completed", icon: Circle },
-];
+const AVAILABILITY_FILTER_OPTIONS = (["AVAILABLE", "BLOCKED"] as const satisfies readonly AvailabilityStatus[]).map(
+  (value) => ({ value, label: AVAILABILITY_META[value].label, icon: AVAILABILITY_META[value].icon }),
+);
 
 type FilterValue = CourseStatus | AvailabilityStatus;
 
@@ -263,7 +255,7 @@ export function CurriculumMapView({ viewModel }: CurriculumMapViewProps) {
         )}
       </div>
 
-      <div dir="ltr" className="h-[720px] w-full overflow-hidden rounded-lg border">
+      <div dir="ltr" className="h-[min(720px,70vh)] w-full overflow-hidden rounded-lg border">
         <ReactFlowProvider>
           <ReactFlow
             nodes={flowNodes}
@@ -272,11 +264,13 @@ export function CurriculumMapView({ viewModel }: CurriculumMapViewProps) {
             fitView
             nodesDraggable={false}
             nodesConnectable={false}
+            nodesFocusable={false}
             elementsSelectable
             proOptions={{ hideAttribution: true }}
           >
             <Background />
             <Controls showInteractive={false} />
+            <MiniMap pannable zoomable />
           </ReactFlow>
         </ReactFlowProvider>
       </div>

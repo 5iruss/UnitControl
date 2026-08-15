@@ -112,7 +112,7 @@ export function CurriculumCourseRow({ membership }: CurriculumCourseRowProps) {
           </Button>
         </div>
       )}
-      {error && <p className="text-xs text-destructive">{error}</p>}
+      {error && <p className="text-xs text-destructive" role="alert">{error}</p>}
     </li>
   );
 }

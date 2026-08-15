@@ -18,14 +18,22 @@ export function ResetPasswordForm() {
     <form action={formAction} className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
         <Label htmlFor="identifier">Student number or phone number</Label>
-        <Input id="identifier" name="identifier" required />
+        <Input id="identifier" name="identifier" required dir="ltr" />
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor="newPassword">New password</Label>
         <Input id="newPassword" name="newPassword" type="password" required />
       </div>
-      {state.error && <p className="text-sm text-destructive">{state.error}</p>}
-      {state.success && <p className="text-sm text-green-600">{state.success}</p>}
+      {state.error && (
+        <p className="text-sm text-destructive" role="alert">
+          {state.error}
+        </p>
+      )}
+      {state.success && (
+        <p className="text-sm text-emerald-700 dark:text-emerald-400" role="status" aria-live="polite">
+          {state.success}
+        </p>
+      )}
       <Button type="submit" disabled={pending}>
         {pending ? "Resetting…" : "Reset password"}
       </Button>

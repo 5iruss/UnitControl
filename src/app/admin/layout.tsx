@@ -1,14 +1,7 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/session";
 import { LogoutButton } from "@/components/logout-button";
-import type { Role } from "@/generated/prisma/client";
-
-const ROLE_LABEL: Record<Role, string> = {
-  STUDENT: "Student",
-  SUPER_ADMIN: "Super Admin",
-  ACADEMIC_GROUP_MANAGER: "Academic Group Manager",
-  SUPPORT: "Support",
-};
+import { ROLE_LABEL } from "@/lib/admin/role-label";
 
 // docs/08_Admin_Panel.md §16, §18 — role-specific nav visibility (UX layer
 // only; every linked route re-checks authorization server-side — docs
@@ -20,6 +13,14 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
 
   return (
     <div className="flex min-h-screen flex-col">
+      {isAdmin && (
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-background focus:px-3 focus:py-2 focus:text-sm focus:underline focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          Skip to content
+        </a>
+      )}
       {isAdmin && (
         <header className="flex flex-wrap items-center justify-between gap-3 border-b bg-muted/30 px-4 py-3">
           <nav className="flex flex-wrap items-center gap-4 text-sm">
@@ -56,7 +57,11 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
           </div>
         </header>
       )}
-      <div className="flex-1">{children}</div>
+      {/* Individual admin pages each render their own <main>; this wrapper is
+          only the skip-link target, not a second landmark. */}
+      <div id="main" className="flex-1">
+        {children}
+      </div>
     </div>
   );
 }

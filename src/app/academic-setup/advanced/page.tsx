@@ -10,8 +10,16 @@ import {
 import { finishAcademicSetupAction } from "@/lib/academic-status/actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { STATUS_META } from "@/components/curriculum-map/status-meta";
 import { SemesterForm } from "./semester-form";
 import { CourseAttemptForm } from "./course-attempt-form";
+
+// Derived independently from the shared status-meta.ts source (not imported
+// from course-attempt-form.tsx, a "use client" module — a plain value
+// export can't cross the Server/Client Component boundary reliably).
+const RESULT_LABEL_BY_VALUE = new Map<string, string>(
+  (["PASSED", "FAILED", "CURRENTLY_STUDYING"] as const).map((value) => [value, STATUS_META[value].label]),
+);
 
 // docs/02_User_Flow.md §5, §12 — Advanced Mode: add academic terms one at a
 // time, mark courses taken and their final status, enter semester GPA.
@@ -36,14 +44,22 @@ export default async function AdvancedAcademicSetupPage() {
 
   return (
     <main className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
+      <h1 className="text-xl font-semibold">Advanced academic setup</h1>
+
       <Card>
         <CardHeader>
-          <CardTitle>Add an academic term</CardTitle>
+          <CardTitle>Add a semester</CardTitle>
         </CardHeader>
         <CardContent>
           <SemesterForm />
         </CardContent>
       </Card>
+
+      {semesters.length === 0 && (
+        <p className="text-sm text-muted-foreground">
+          No semesters recorded yet. Add one above to start entering your academic history.
+        </p>
+      )}
 
       {semesters.map((semester) => {
         const termAttempts = attempts.filter(
@@ -60,7 +76,7 @@ export default async function AdvancedAcademicSetupPage() {
               <ul className="text-sm">
                 {termAttempts.map((attempt) => (
                   <li key={attempt.id}>
-                    {attempt.course.name} — {attempt.result}
+                    {attempt.course.name} — {RESULT_LABEL_BY_VALUE.get(attempt.result) ?? attempt.result}
                   </li>
                 ))}
               </ul>

@@ -59,7 +59,7 @@ export function AddPlannedCourseForm({ courses }: AddPlannedCourseFormProps) {
       <div className="flex flex-col gap-1">
         <Label htmlFor="plan-course">Course</Label>
         <Select value={courseId} onValueChange={(value) => setCourseId(value ?? "")}>
-          <SelectTrigger id="plan-course" className="w-64" aria-label="Course to plan">
+          <SelectTrigger id="plan-course" className="w-full sm:w-64" aria-label="Course to plan">
             <SelectValue placeholder="Select a course">
               {(value: string) => courseNameById.get(value) ?? value}
             </SelectValue>
@@ -83,6 +83,7 @@ export function AddPlannedCourseForm({ courses }: AddPlannedCourseFormProps) {
           value={termCode}
           onChange={(event) => setTermCode(event.target.value)}
           className="w-24"
+          dir="ltr"
         />
       </div>
 
@@ -90,7 +91,11 @@ export function AddPlannedCourseForm({ courses }: AddPlannedCourseFormProps) {
         {isPending ? "Adding…" : "Add to plan"}
       </Button>
 
-      {error && <p className="w-full text-xs text-destructive">{error}</p>}
+      {error && (
+        <p className="w-full text-xs text-destructive" role="alert">
+          {error}
+        </p>
+      )}
     </form>
   );
 }

@@ -475,6 +475,26 @@ Environment-specific configuration must not be hardcoded into the application.
 
 Secrets and credentials must be stored using environment configuration/secrets management.
 
+The hosting provider itself remains TBD, but the deployment sequence to any standard Node.js/PostgreSQL host is:
+
+```text
+1. pnpm install                 (runs `prisma generate` via postinstall)
+2. Configure environment variables (see .env.example)
+3. Connect to the production PostgreSQL database
+4. pnpm db:migrate:deploy       (prisma migrate deploy — non-interactive,
+                                  applies committed migrations only; never
+                                  run `pnpm db:migrate`, which is dev-only
+                                  and can prompt to reset the database)
+5. pnpm db:seed                 (only if the deployment explicitly requires
+                                  seeding the curriculum/course catalog;
+                                  idempotent, safe to skip on subsequent
+                                  deploys)
+6. pnpm build
+7. pnpm start
+8. Smoke test via GET /api/health (200 {"status":"ok"} once the app can
+                                  reach the database)
+```
+
 ---
 
 # 24. Technology Stack

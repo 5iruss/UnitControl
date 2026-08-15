@@ -81,7 +81,10 @@ test.describe("academic profile creation", () => {
     await page.getByRole("button", { name: "Continue" }).click();
 
     await completeAcademicSetup(page);
-    await expect(page.getByText("Welcome, Sara Ahmadi.")).toBeVisible();
+    // getByRole scopes to the page's own <h1>, not Next.js's route
+    // announcer (a hidden aria-live region that also mirrors the h1 text
+    // for screen readers on navigation).
+    await expect(page.getByRole("heading", { name: "Welcome, Sara Ahmadi." })).toBeVisible();
 
     await page.getByRole("button", { name: "Log out" }).click();
     await expect(page).toHaveURL("/login");

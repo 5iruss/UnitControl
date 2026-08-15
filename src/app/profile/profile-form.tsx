@@ -133,7 +133,11 @@ export function ProfileForm({
         </Select>
       </div>
 
-      {state.error && <p className="text-sm text-destructive">{state.error}</p>}
+      {state.error && (
+        <p className="text-sm text-destructive" role="alert">
+          {state.error}
+        </p>
+      )}
 
       {showConfirmation && state.pendingReset && (
         <div className="flex flex-col gap-3 rounded-md border border-destructive/40 bg-destructive/5 p-3">
@@ -161,7 +165,9 @@ export function ProfileForm({
       )}
 
       {state.success && !state.pendingReset && (
-        <p className="text-sm text-green-600">Profile saved.</p>
+        <p className="text-sm text-emerald-700 dark:text-emerald-400" role="status" aria-live="polite">
+          Profile saved.
+        </p>
       )}
     </form>
   );

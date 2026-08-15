@@ -120,7 +120,7 @@ export function AddRelationshipForm({ courseId, otherCourses }: AddRelationshipF
         {isPending ? "Adding…" : "Add relationship"}
       </Button>
 
-      {error && <p className="w-full text-xs text-destructive">{error}</p>}
+      {error && <p className="w-full text-xs text-destructive" role="alert">{error}</p>}
     </form>
   );
 }

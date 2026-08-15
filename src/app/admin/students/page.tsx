@@ -17,7 +17,7 @@ export default async function AdminStudentsPage(props: PageProps<"/admin/student
 
   return (
     <main className="mx-auto flex max-w-2xl flex-col gap-4 p-4">
-      <h1 className="text-xl font-semibold">Student search</h1>
+      <h1 className="text-xl font-semibold">Students</h1>
       <form action="/admin/students" method="GET" className="flex gap-2">
         <Input
           name="q"

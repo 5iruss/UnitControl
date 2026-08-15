@@ -41,7 +41,7 @@ export function AddCourseGroupForm({ curriculumId }: AddCourseGroupFormProps) {
       <Button type="submit" disabled={pending}>
         {pending ? "Creating…" : "Create group"}
       </Button>
-      {state.error && <p className="w-full text-xs text-destructive">{state.error}</p>}
+      {state.error && <p className="w-full text-xs text-destructive" role="alert">{state.error}</p>}
     </form>
   );
 }

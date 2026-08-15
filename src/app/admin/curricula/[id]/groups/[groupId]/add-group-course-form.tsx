@@ -70,7 +70,7 @@ export function AddGroupCourseForm({ courseGroupId, courses }: AddGroupCourseFor
       <Button type="submit" disabled={isPending}>
         {isPending ? "Adding…" : "Add to group"}
       </Button>
-      {error && <p className="w-full text-xs text-destructive">{error}</p>}
+      {error && <p className="w-full text-xs text-destructive" role="alert">{error}</p>}
     </form>
   );
 }

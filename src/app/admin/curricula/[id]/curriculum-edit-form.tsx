@@ -12,14 +12,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { STATUS_LABEL } from "@/app/admin/status-label";
 
 const initialState: AdminActionState = {};
-
-const STATUS_LABEL: Record<string, string> = {
-  ACTIVE: "Active",
-  INACTIVE: "Inactive",
-  ARCHIVED: "Archived",
-};
 
 export interface CurriculumEditFormProps {
   curriculum: {
@@ -102,7 +97,7 @@ export function CurriculumEditForm({ curriculum }: CurriculumEditFormProps) {
           </SelectContent>
         </Select>
       </div>
-      {state.error && <p className="text-sm text-destructive">{state.error}</p>}
+      {state.error && <p className="text-sm text-destructive" role="alert">{state.error}</p>}
       <Button type="submit" disabled={pending}>
         {pending ? "Saving…" : "Save changes"}
       </Button>
