@@ -21,6 +21,8 @@ const STATUS_OPTIONS: { value: CourseStatusValue; label: string }[] = [
   { value: "PLANNED", label: "Planned" },
 ];
 
+const STATUS_LABEL_BY_VALUE = new Map(STATUS_OPTIONS.map((o) => [o.value, o.label]));
+
 const initialState: AcademicStatusActionState = {};
 
 interface CourseStatusRowProps {
@@ -54,7 +56,9 @@ export function CourseStatusRow({
 
       <Select name="status" value={status} onValueChange={(value) => setStatus(value as CourseStatusValue)}>
         <SelectTrigger aria-label={`Status for ${courseName}`}>
-          <SelectValue />
+          <SelectValue>
+            {(value: CourseStatusValue) => STATUS_LABEL_BY_VALUE.get(value) ?? value}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
           {STATUS_OPTIONS.map((option) => (

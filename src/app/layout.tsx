@@ -18,9 +18,12 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
+  // docs/03_UX_UI_Specification.md §22, §24 — primary content language is
+  // Persian with an RTL layout (curriculum data is entirely Persian).
   return (
     <html
-      lang="en"
+      lang="fa"
+      dir="rtl"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>

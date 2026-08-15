@@ -172,6 +172,30 @@ export async function getAllCourseRelationships() {
   );
 }
 
+/// Seeds a single verified relationship row between two real courses, for
+/// exercising the curriculum map's edge-rendering path (docs/06_Curriculum_Dataset.md
+/// §5 — the actual dataset has zero relationships, so this is test-only
+/// fixture data). Callers must clean up with deleteCourseRelationship.
+export async function seedCourseRelationship(
+  sourceCourseId: string,
+  targetCourseId: string,
+  relationshipType: "PREREQUISITE" | "COREQUISITE",
+) {
+  const id = randomUUID();
+  await withClient((client) =>
+    client.query(
+      `INSERT INTO course_relationships (id, source_course_id, target_course_id, relationship_type, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, NOW(), NOW())`,
+      [id, sourceCourseId, targetCourseId, relationshipType],
+    ),
+  );
+  return { id };
+}
+
+export async function deleteCourseRelationship(id: string) {
+  await withClient((client) => client.query(`DELETE FROM course_relationships WHERE id = $1`, [id]));
+}
+
 // ---------------------------------------------------------------------------
 // Academic-status read helpers (Phase 5).
 // ---------------------------------------------------------------------------
