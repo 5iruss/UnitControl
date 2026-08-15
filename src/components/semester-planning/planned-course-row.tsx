@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { setCourseStatusAction } from "@/lib/academic-status/actions";
 import type { PlannedCourseViewModel } from "@/domain/semester-planning";
-import { AVAILABILITY_META } from "@/components/curriculum-map/course-node";
+import { AVAILABILITY_META } from "@/components/curriculum-map/status-meta";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 

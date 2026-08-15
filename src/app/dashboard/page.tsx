@@ -2,13 +2,16 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getStudentProfile } from "@/lib/academic-profile/queries";
+import { buildAcademicState } from "@/lib/academic-rules/queries";
 import { getCurriculumMapData } from "@/lib/curriculum-map/queries";
 import { getSemesterPlan } from "@/lib/semester-planning/queries";
+import { getRecommendations } from "@/lib/recommendations/queries";
 import { LogoutButton } from "@/components/logout-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CurriculumMapView } from "@/components/curriculum-map/curriculum-map-view";
 import { SemesterPlanSection } from "@/components/semester-planning/semester-plan-section";
+import { RecommendationsPanel } from "@/components/recommendations/recommendations-panel";
 import type { CourseStatus } from "@/domain/academic";
 
 const STATUS_STAT_LABELS: Record<CourseStatus, string> = {
@@ -33,10 +36,22 @@ export default async function DashboardPage() {
   if (!profile) redirect("/profile/setup");
   if (!profile.academicSetupCompletedAt) redirect("/academic-setup");
 
+  // docs Phase 9 prompt §22 — assemble the academic state once per request
+  // and hand it to every view-model query below, instead of each one
+  // rebuilding it (avoids N+1 duplicate Rules Engine data fetches).
+  const academicState = await buildAcademicState(profile.id, profile.curriculumId);
+
   const [{ curriculumName, viewModel }, semesters] = await Promise.all([
-    getCurriculumMapData(profile.id, profile.curriculumId),
-    getSemesterPlan(profile.id, profile.curriculumId),
+    getCurriculumMapData(profile.id, profile.curriculumId, academicState),
+    getSemesterPlan(profile.id, academicState),
   ]);
+
+  const recommendations = await getRecommendations(
+    profile.curriculumId,
+    academicState,
+    viewModel,
+    semesters,
+  );
 
   // docs/03_UX_UI_Specification.md §6 — course counts only (never units:
   // courses.credits / curricula.total_required_units are unverified/NULL in
@@ -89,6 +104,8 @@ export default async function DashboardPage() {
           <CurriculumMapView viewModel={viewModel} />
         </CardContent>
       </Card>
+
+      <RecommendationsPanel data={recommendations} />
 
       <SemesterPlanSection semesters={semesters} availableCourses={availableCourses} />
 

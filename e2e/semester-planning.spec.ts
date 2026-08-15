@@ -162,7 +162,17 @@ test.describe("planning", () => {
 
       // Allowed (added), not blocked — the semester group must exist.
       await expect(semesterHeading(page, "Mehr 1405")).toBeVisible();
-      await expect(page.getByText("unverified")).toBeVisible();
+      // Scoped to the "Planned semesters" section itself: Phase 9 also
+      // surfaces this same Rules Engine warning elsewhere (the
+      // recommendations/warnings panel), which is expected — this assertion
+      // only cares that the planner row shows it.
+      const plannedSemestersCard = page
+        .getByText("Planned semesters", { exact: true })
+        .locator("..")
+        .locator("..");
+      await expect(
+        plannedSemestersCard.locator("li", { hasText: courseB.name }).getByText("unverified"),
+      ).toBeVisible();
     } finally {
       await deleteCourseRelationship(relationship.id);
     }

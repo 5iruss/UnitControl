@@ -1,8 +1,8 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
-import { buildAcademicState } from "@/lib/academic-rules/queries";
 import { getStudentCourses } from "@/lib/academic-status/queries";
 import { evaluateCourseEligibility } from "@/domain/academic";
+import type { AcademicState } from "@/domain/academic";
 import { buildCurriculumMapViewModel } from "@/domain/curriculum-map";
 import type { CurriculumMapCourseInput, CurriculumMapViewModel } from "@/domain/curriculum-map";
 
@@ -12,16 +12,19 @@ export interface CurriculumMapData {
 }
 
 // docs/09_Technical_Requirements.md Phase 7 "Data Architecture" — the only
-// Prisma-touching step. Fetches the student's curriculum courses, builds the
-// Academic Rules Engine's AcademicState (Phase 6, reused as-is), evaluates
-// eligibility per course (domain/academic, pure), and shapes the result into
-// the domain/curriculum-map view model (pure). React components never see
+// Prisma-touching step. Fetches the student's curriculum courses, evaluates
+// eligibility per course (domain/academic, pure) against the caller-supplied
+// AcademicState (Phase 6, built once per request — docs Phase 9 prompt §22
+// "avoid N+1 queries... assemble the academic state once" — rather than
+// each view-model query rebuilding it), and shapes the result into the
+// domain/curriculum-map view model (pure). React components never see
 // Prisma models or call the Rules Engine directly.
 export async function getCurriculumMapData(
   studentId: string,
   curriculumId: string,
+  academicState: AcademicState,
 ): Promise<CurriculumMapData> {
-  const [curriculum, curriculumCourses, academicState, studentCourses] = await Promise.all([
+  const [curriculum, curriculumCourses, studentCourses] = await Promise.all([
     prisma.curriculum.findUniqueOrThrow({ where: { id: curriculumId }, select: { name: true } }),
     prisma.curriculumCourse.findMany({
       where: { curriculumId },
@@ -30,7 +33,6 @@ export async function getCurriculumMapData(
         course: { select: { id: true, courseCode: true, name: true } },
       },
     }),
-    buildAcademicState(studentId, curriculumId),
     getStudentCourses(studentId),
   ]);
 
