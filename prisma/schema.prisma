@@ -146,6 +146,12 @@ model AuditLog {
   adminId   String   @map("admin_id")
   action    String
   target    String
+  /// docs/09_Technical_Requirements.md §22 — "Where useful, the previous and
+  /// new values should also be recorded." Nullable/free-form: only the admin
+  /// Server Actions that have something worth recording set it (e.g. a
+  /// course's previous/new status); never plaintext passwords, tokens, or
+  /// secrets (docs/08_Admin_Panel.md §11, §15).
+  details   Json?
   createdAt DateTime @default(now()) @map("created_at")
 
   admin User @relation(fields: [adminId], references: [id])
@@ -229,6 +235,12 @@ model Course {
   courseType  String?  @map("course_type")
   /// Nullable: unknown/unverified until the dataset defines it (docs/05_Curriculum_Data_Model.md §17).
   isPractical Boolean? @map("is_practical")
+  /// docs/08_Admin_Panel.md §6 "Disable/archive a course"; §14 "Archive
+  /// Instead of Delete." Reuses CurriculumStatus rather than defining a
+  /// second identical enum (the name CourseStatus is already taken by the
+  /// student course-status enum). Admin Panel phase addition — Course had no
+  /// status field before Phase 10.
+  status      CurriculumStatus @default(ACTIVE)
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 

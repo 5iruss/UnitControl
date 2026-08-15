@@ -196,6 +196,46 @@ export async function deleteCourseRelationship(id: string) {
   await withClient((client) => client.query(`DELETE FROM course_relationships WHERE id = $1`, [id]));
 }
 
+/// Deletes a throwaway curriculum created by an Admin Panel test, along with
+/// everything that references it (curriculum_courses, course_groups +
+/// course_group_courses, curriculum_requirements). The Admin Panel itself
+/// deliberately has no curriculum-delete action (archive only — docs/08_Admin_Panel.md
+/// §14); this bypasses the UI purely for test cleanup, the same way
+/// deleteCourseRelationship does for relationships.
+export async function deleteCurriculum(id: string) {
+  await withClient(async (client) => {
+    await client.query(
+      `DELETE FROM curriculum_requirements WHERE curriculum_id = $1`,
+      [id],
+    );
+    await client.query(
+      `DELETE FROM course_group_courses WHERE course_group_id IN (SELECT id FROM course_groups WHERE curriculum_id = $1)`,
+      [id],
+    );
+    await client.query(`DELETE FROM course_groups WHERE curriculum_id = $1`, [id]);
+    await client.query(`DELETE FROM curriculum_courses WHERE curriculum_id = $1`, [id]);
+    await client.query(`DELETE FROM curricula WHERE id = $1`, [id]);
+  });
+}
+
+/// Deletes a throwaway course created by an Admin Panel test, along with any
+/// relationships/curriculum-course links referencing it. The Admin Panel
+/// itself deliberately has no course-delete action (archive only).
+export async function deleteCourse(id: string) {
+  await withClient(async (client) => {
+    await client.query(
+      `DELETE FROM course_relationships WHERE source_course_id = $1 OR target_course_id = $1`,
+      [id],
+    );
+    await client.query(
+      `DELETE FROM course_group_courses WHERE course_id = $1`,
+      [id],
+    );
+    await client.query(`DELETE FROM curriculum_courses WHERE course_id = $1`, [id]);
+    await client.query(`DELETE FROM courses WHERE id = $1`, [id]);
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Academic-status read helpers (Phase 5).
 // ---------------------------------------------------------------------------

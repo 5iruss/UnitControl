@@ -96,7 +96,11 @@ test.describe("admin / support authentication", () => {
     await page.getByRole("button", { name: "Log in" }).click();
 
     await expect(page).toHaveURL("/admin");
-    await expect(page.getByText("SUPPORT")).toBeVisible();
+    // docs Phase 10 prompt — the Admin Panel's nav header shows a
+    // human-readable role label, not the raw enum value. Scoped to the
+    // header itself since the dashboard's recent-activity list can also
+    // contain other "Support" text from prior audit-log entries.
+    await expect(page.locator("header").getByText("Support", { exact: false })).toBeVisible();
   });
 
   test("unauthenticated visitors are redirected away from the admin area", async ({ page }) => {
