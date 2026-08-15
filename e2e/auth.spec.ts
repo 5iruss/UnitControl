@@ -53,6 +53,22 @@ test.describe("student registration and login", () => {
     await expect(page).toHaveURL("/login");
   });
 
+  test("login with an unknown identifier shows the same generic error as a wrong password", async ({
+    page,
+  }) => {
+    // Phase 11 hardening — the not-found and wrong-password paths must be
+    // indistinguishable to the client (same message; the timing side-channel
+    // fix that makes both paths run bcrypt is not observable here, but this
+    // guards the functional behavior the fix touches).
+    await page.goto("/login");
+    await page.getByLabel("Student number or phone number").fill(uniqueId("no-such-student"));
+    await page.getByLabel("Password").fill("WhateverPassword123!");
+    await page.getByRole("button", { name: "Log in" }).click();
+
+    await expect(page.getByText("Incorrect credentials.")).toBeVisible();
+    await expect(page).toHaveURL("/login");
+  });
+
   test("login succeeds with correct credentials", async ({ page }) => {
     const { studentNumber, password } = await seedStudent();
 
@@ -150,5 +166,45 @@ test.describe("admin / support authentication", () => {
   }) => {
     await page.goto("/admin/support/reset-password");
     await expect(page).toHaveURL("/admin/login");
+  });
+
+  // Phase 11 hardening — a password reset must invalidate any session issued
+  // before it, otherwise a token an attacker already holds keeps working
+  // after the reset (the documented reason support resets a password in the
+  // first place, docs/08_Admin_Panel.md §11).
+  test("resetting a student's password invalidates their existing session", async ({
+    page,
+    browser,
+  }) => {
+    const student = await seedStudent();
+
+    // The student logs in first, establishing a session cookie in `page`.
+    await page.goto("/login");
+    await page.getByLabel("Student number or phone number").fill(student.studentNumber);
+    await page.getByLabel("Password").fill(student.password);
+    await page.getByRole("button", { name: "Log in" }).click();
+    await expect(page).toHaveURL("/profile/setup");
+
+    // Support resets the password from a separate browser context (a
+    // separate cookie jar), simulating a different real-world session.
+    const support = await seedAdmin("SUPPORT");
+    const adminContext = await browser.newContext();
+    const adminPage = await adminContext.newPage();
+    await adminPage.goto("/admin/login");
+    await adminPage.getByLabel("Student number or phone number").fill(support.studentNumber);
+    await adminPage.getByLabel("Password").fill(support.password);
+    await adminPage.getByRole("button", { name: "Log in" }).click();
+    await expect(adminPage).toHaveURL("/admin");
+    await adminPage.getByRole("link", { name: "Reset a student's password" }).click();
+    await adminPage.getByLabel("Student number or phone number").fill(student.studentNumber);
+    await adminPage.getByLabel("New password").fill("PostResetPass123!");
+    await adminPage.getByRole("button", { name: "Reset password" }).click();
+    await expect(adminPage.getByText(/Password reset for Test Student\./)).toBeVisible();
+    await adminContext.close();
+
+    // The student's original session cookie (issued before the reset) must
+    // no longer be accepted.
+    await page.goto("/dashboard");
+    await expect(page).toHaveURL("/login");
   });
 });

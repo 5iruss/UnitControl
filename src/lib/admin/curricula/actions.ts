@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdminRole } from "@/lib/admin/authorization";
 import { recordAuditLog } from "@/lib/admin/audit-log";
 import { firstIssueMessage } from "@/lib/zod-utils";
+import { isUniqueConstraintError } from "@/lib/db-errors";
 import {
   addCurriculumCourseSchema,
   curriculumSchema,
@@ -37,7 +38,13 @@ export async function createCurriculumAction(
   const existing = await prisma.curriculum.findUnique({ where: { name: parsed.data.name } });
   if (existing) return { error: "A curriculum with this name already exists." };
 
-  const curriculum = await prisma.curriculum.create({ data: parsed.data });
+  let curriculum;
+  try {
+    curriculum = await prisma.curriculum.create({ data: parsed.data });
+  } catch (err) {
+    if (isUniqueConstraintError(err)) return { error: "A curriculum with this name already exists." };
+    throw err;
+  }
   await recordAuditLog({
     adminId: auth.user.id,
     action: "CURRICULUM_CREATED",
@@ -102,7 +109,12 @@ export async function addCurriculumCourseAction(
   });
   if (existing) return { error: "This course is already part of the curriculum." };
 
-  await prisma.curriculumCourse.create({ data: { curriculumId, courseId, category, required } });
+  try {
+    await prisma.curriculumCourse.create({ data: { curriculumId, courseId, category, required } });
+  } catch (err) {
+    if (isUniqueConstraintError(err)) return { error: "This course is already part of the curriculum." };
+    throw err;
+  }
   await recordAuditLog({
     adminId: auth.user.id,
     action: "CURRICULUM_COURSE_ADDED",

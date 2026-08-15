@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdminRole } from "@/lib/admin/authorization";
 import { recordAuditLog } from "@/lib/admin/audit-log";
 import { firstIssueMessage } from "@/lib/zod-utils";
+import { isUniqueConstraintError } from "@/lib/db-errors";
 import { validateCourseRelationshipInput } from "@/domain/admin";
 import { createRelationshipSchema, deleteRelationshipSchema } from "./schemas";
 
@@ -49,7 +50,12 @@ export async function createRelationshipAction(
   });
   if (existing) return { error: "This relationship already exists." };
 
-  await prisma.courseRelationship.create({ data: { sourceCourseId, targetCourseId, relationshipType } });
+  try {
+    await prisma.courseRelationship.create({ data: { sourceCourseId, targetCourseId, relationshipType } });
+  } catch (err) {
+    if (isUniqueConstraintError(err)) return { error: "This relationship already exists." };
+    throw err;
+  }
   await recordAuditLog({
     adminId: auth.user.id,
     action: "RELATIONSHIP_CREATED",

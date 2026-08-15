@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdminRole } from "@/lib/admin/authorization";
 import { recordAuditLog } from "@/lib/admin/audit-log";
 import { firstIssueMessage } from "@/lib/zod-utils";
+import { isUniqueConstraintError } from "@/lib/db-errors";
 import {
   addGroupCourseSchema,
   courseGroupSchema,
@@ -38,7 +39,15 @@ export async function createCourseGroupAction(
   });
   if (existing) return { error: "A group with this name already exists in this curriculum." };
 
-  const group = await prisma.courseGroup.create({ data: parsed.data });
+  let group;
+  try {
+    group = await prisma.courseGroup.create({ data: parsed.data });
+  } catch (err) {
+    if (isUniqueConstraintError(err)) {
+      return { error: "A group with this name already exists in this curriculum." };
+    }
+    throw err;
+  }
   await recordAuditLog({
     adminId: auth.user.id,
     action: "COURSE_GROUP_CREATED",
@@ -132,7 +141,12 @@ export async function addGroupCourseAction(
   });
   if (existing) return { error: "This course is already in the group." };
 
-  await prisma.courseGroupCourse.create({ data: { courseGroupId, courseId } });
+  try {
+    await prisma.courseGroupCourse.create({ data: { courseGroupId, courseId } });
+  } catch (err) {
+    if (isUniqueConstraintError(err)) return { error: "This course is already in the group." };
+    throw err;
+  }
   await recordAuditLog({
     adminId: auth.user.id,
     action: "GROUP_COURSE_ADDED",

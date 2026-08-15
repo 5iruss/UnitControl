@@ -6,7 +6,15 @@ declare global {
 }
 
 function createPrismaClient() {
-  const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) {
+    // Fail fast with a clear message instead of letting the pg driver throw
+    // a cryptic connection error once the first query runs.
+    throw new Error(
+      "DATABASE_URL is not set. Copy .env.example to .env and set a valid PostgreSQL connection string.",
+    );
+  }
+  const adapter = new PrismaPg({ connectionString });
   return new PrismaClient({ adapter });
 }
 

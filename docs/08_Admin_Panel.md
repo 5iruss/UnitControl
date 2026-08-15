@@ -345,6 +345,8 @@ Additional details can be defined in:
 
 `09_Technical_Requirements.md`
 
+Per `09_Technical_Requirements.md` §22 ("Where useful, the previous and new values should also be recorded"), an audit record may optionally carry a `details` field (e.g. previous/new status, assigned role). `details` must never contain a password, password hash, session token, or other secret.
+
 ---
 
 # 16. Permissions

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import { createSession, destroySession, getCurrentUser } from "@/lib/auth/session";
+import { isUniqueConstraintError } from "@/lib/db-errors";
 import {
   loginSchema,
   registerSchema,
@@ -44,30 +45,47 @@ export async function registerAction(
   }
 
   const passwordHash = await hashPassword(password);
-  const user = await prisma.user.create({
-    data: {
-      studentNumber,
-      phoneNumber,
-      passwordHash,
-      firstName,
-      lastName,
-      role: "STUDENT",
-    },
-  });
+  let user;
+  try {
+    user = await prisma.user.create({
+      data: {
+        studentNumber,
+        phoneNumber,
+        passwordHash,
+        firstName,
+        lastName,
+        role: "STUDENT",
+      },
+    });
+  } catch (err) {
+    // A concurrent registration with the same identifier can slip past the
+    // pre-check above; the unique constraint is the real guard.
+    if (isUniqueConstraintError(err)) {
+      return { error: "An account with this student number or phone number already exists." };
+    }
+    throw err;
+  }
 
   await createSession(user.id);
   // docs/02_User_Flow.md §2 — Registration -> Academic Profile next.
   redirect("/profile/setup");
 }
 
+// Not a credential — a fixed bcrypt hash compared against on the
+// "identifier not found" path so both branches of authenticate() take
+// comparable time, closing a timing side-channel that would otherwise let
+// an attacker distinguish "unknown identifier" from "wrong password" by
+// response latency (the not-found path used to skip bcrypt entirely).
+const TIMING_SAFE_DUMMY_HASH =
+  "$2b$12$2xA3tHj7lbXAS5rKQellOOK5Qb2DiZRmNjMO9n8RpkUY6zChbJtJ6";
+
 async function authenticate(identifier: string, password: string) {
   const user = await prisma.user.findFirst({
     where: { OR: [{ studentNumber: identifier }, { phoneNumber: identifier }] },
   });
-  if (!user) return null;
 
-  const valid = await verifyPassword(password, user.passwordHash);
-  if (!valid) return null;
+  const valid = await verifyPassword(password, user?.passwordHash ?? TIMING_SAFE_DUMMY_HASH);
+  if (!user || !valid) return null;
 
   return user;
 }
@@ -156,8 +174,13 @@ export async function supportResetPasswordAction(
   }
 
   const passwordHash = await hashPassword(parsed.data.newPassword);
+  // Invalidate any sessions issued before the reset — otherwise a token an
+  // attacker already holds (the documented reason support resets a
+  // password, docs/08_Admin_Panel.md §11) would keep working for up to
+  // SESSION_DURATION_MS after the reset.
   await prisma.$transaction([
     prisma.user.update({ where: { id: target.id }, data: { passwordHash } }),
+    prisma.session.deleteMany({ where: { userId: target.id } }),
     prisma.auditLog.create({
       data: {
         adminId: actor.id,

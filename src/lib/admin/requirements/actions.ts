@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdminRole } from "@/lib/admin/authorization";
 import { recordAuditLog } from "@/lib/admin/audit-log";
 import { firstIssueMessage } from "@/lib/zod-utils";
+import { isUniqueConstraintError } from "@/lib/db-errors";
 import { validateCurriculumRequirementInput } from "@/domain/admin";
 import { deleteRequirementSchema, requirementSchema, updateRequirementSchema } from "./schemas";
 
@@ -53,7 +54,14 @@ export async function createRequirementAction(
   });
   if (existing) return { error: "A requirement with this name and type already exists." };
 
-  await prisma.curriculumRequirement.create({ data });
+  try {
+    await prisma.curriculumRequirement.create({ data });
+  } catch (err) {
+    if (isUniqueConstraintError(err)) {
+      return { error: "A requirement with this name and type already exists." };
+    }
+    throw err;
+  }
   await recordAuditLog({
     adminId: auth.user.id,
     action: "REQUIREMENT_CREATED",

@@ -184,6 +184,7 @@ courses
 - credits
 - course_type
 - is_practical
+- status
 - created_at
 - updated_at
 ```
@@ -191,6 +192,8 @@ courses
 ### Notes
 
 A course should exist only once in the global course table when the same course is shared across curricula.
+
+`status` (active / inactive / archived) supports the Admin Panel's "archive instead of delete" rule (see `08_Admin_Panel.md`) for a course that may be referenced by student data; it does not affect the course's academic meaning.
 
 Curriculum-specific roles should be stored through the curriculum relationship.
 

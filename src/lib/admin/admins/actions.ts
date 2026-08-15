@@ -6,6 +6,7 @@ import { hashPassword } from "@/lib/auth/password";
 import { requireAdminRole } from "@/lib/admin/authorization";
 import { recordAuditLog } from "@/lib/admin/audit-log";
 import { firstIssueMessage } from "@/lib/zod-utils";
+import { isUniqueConstraintError } from "@/lib/db-errors";
 import { createAdminSchema } from "./schemas";
 
 // docs/08_Admin_Panel.md §2 "Super Admin ... Can manage: Administrators" /
@@ -43,9 +44,17 @@ export async function createAdminAction(
   }
 
   const passwordHash = await hashPassword(password);
-  const admin = await prisma.user.create({
-    data: { studentNumber, phoneNumber, passwordHash, firstName, lastName, role },
-  });
+  let admin;
+  try {
+    admin = await prisma.user.create({
+      data: { studentNumber, phoneNumber, passwordHash, firstName, lastName, role },
+    });
+  } catch (err) {
+    if (isUniqueConstraintError(err)) {
+      return { error: "An account with this identifier or phone number already exists." };
+    }
+    throw err;
+  }
 
   // docs/08_Admin_Panel.md §15 "Administrative permission change" — never
   // log the password/hash itself (docs §11, §15).

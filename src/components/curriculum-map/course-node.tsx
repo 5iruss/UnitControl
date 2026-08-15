@@ -47,6 +47,10 @@ export function CourseNode({ data }: NodeProps<CourseFlowNode>) {
         <StatusIcon className={cn("size-3.5 shrink-0", status.className)} aria-hidden />
         <span className="text-muted-foreground">{status.label}</span>
       </div>
+      <div className="mt-1 flex items-center gap-1">
+        <AvailabilityIcon className="size-3.5 shrink-0" aria-hidden />
+        <span className="text-muted-foreground">{availability.label}</span>
+      </div>
       <Handle type="source" position={Position.Right} className="!opacity-0" />
     </button>
   );
