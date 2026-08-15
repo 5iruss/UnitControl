@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getStudentProfile } from "@/lib/academic-profile/queries";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 
 // docs/02_User_Flow.md §2, §5 — after the academic profile, the student
 // chooses Simple or Advanced academic setup.
@@ -26,7 +26,9 @@ export default async function AcademicSetupPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button render={<Link href="/academic-status">Start Simple Mode</Link>} />
+          <Link href="/academic-status" className={buttonVariants()}>
+            Start Simple Mode
+          </Link>
         </CardContent>
       </Card>
 
@@ -38,10 +40,9 @@ export default async function AcademicSetupPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button
-            variant="outline"
-            render={<Link href="/academic-setup/advanced">Start Advanced Mode</Link>}
-          />
+          <Link href="/academic-setup/advanced" className={buttonVariants({ variant: "outline" })}>
+            Start Advanced Mode
+          </Link>
         </CardContent>
       </Card>
     </main>

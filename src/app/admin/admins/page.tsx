@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireAdminPageAccess } from "@/lib/admin/authorization";
 import { listAdmins } from "@/lib/admin/admins/queries";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { ROLE_LABEL } from "@/lib/admin/role-label";
 
 // docs/08_Admin_Panel.md §2, §16 — Super Admin only.
@@ -14,7 +14,9 @@ export default async function AdminsPage() {
     <main className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Administrators</h1>
-        <Button render={<Link href="/admin/admins/new">Create administrator</Link>} />
+        <Link href="/admin/admins/new" className={buttonVariants()}>
+          Create administrator
+        </Link>
       </div>
       <Card>
         <CardHeader>

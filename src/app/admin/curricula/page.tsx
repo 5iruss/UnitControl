@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireAdminPageAccess } from "@/lib/admin/authorization";
 import { listCurricula } from "@/lib/admin/curricula/queries";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { STATUS_LABEL } from "@/app/admin/status-label";
 
@@ -16,7 +16,9 @@ export default async function CurriculaPage() {
     <main className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Curricula</h1>
-        <Button render={<Link href="/admin/curricula/new">Create curriculum</Link>} />
+        <Link href="/admin/curricula/new" className={buttonVariants()}>
+          Create curriculum
+        </Link>
       </div>
       <Card>
         <CardHeader>

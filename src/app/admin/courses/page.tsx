@@ -3,7 +3,7 @@ import { requireAdminPageAccess } from "@/lib/admin/authorization";
 import { searchCourses } from "@/lib/admin/courses/queries";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { STATUS_LABEL } from "@/app/admin/status-label";
 
@@ -21,7 +21,9 @@ export default async function AdminCoursesPage(props: PageProps<"/admin/courses"
     <main className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Courses</h1>
-        <Button render={<Link href="/admin/courses/new">Create course</Link>} />
+        <Link href="/admin/courses/new" className={buttonVariants()}>
+          Create course
+        </Link>
       </div>
 
       <form action="/admin/courses" method="GET" className="flex gap-2">
