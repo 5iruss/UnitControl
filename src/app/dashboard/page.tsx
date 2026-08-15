@@ -3,10 +3,12 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getStudentProfile } from "@/lib/academic-profile/queries";
 import { getCurriculumMapData } from "@/lib/curriculum-map/queries";
+import { getSemesterPlan } from "@/lib/semester-planning/queries";
 import { LogoutButton } from "@/components/logout-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CurriculumMapView } from "@/components/curriculum-map/curriculum-map-view";
+import { SemesterPlanSection } from "@/components/semester-planning/semester-plan-section";
 import type { CourseStatus } from "@/domain/academic";
 
 const STATUS_STAT_LABELS: Record<CourseStatus, string> = {
@@ -31,7 +33,10 @@ export default async function DashboardPage() {
   if (!profile) redirect("/profile/setup");
   if (!profile.academicSetupCompletedAt) redirect("/academic-setup");
 
-  const { curriculumName, viewModel } = await getCurriculumMapData(profile.id, profile.curriculumId);
+  const [{ curriculumName, viewModel }, semesters] = await Promise.all([
+    getCurriculumMapData(profile.id, profile.curriculumId),
+    getSemesterPlan(profile.id, profile.curriculumId),
+  ]);
 
   // docs/03_UX_UI_Specification.md §6 — course counts only (never units:
   // courses.credits / curricula.total_required_units are unverified/NULL in
@@ -40,6 +45,13 @@ export default async function DashboardPage() {
   for (const node of viewModel.nodes) {
     statusCounts.set(node.status, (statusCounts.get(node.status) ?? 0) + 1);
   }
+
+  // docs/04_Academic_Rules_Engine.md §21 item 2 — an already-passed course
+  // is unconditionally blocked, so it's left out of the "add to plan" picker
+  // rather than offered and then always rejected server-side.
+  const availableCourses = viewModel.nodes
+    .filter((node) => node.status !== "PASSED")
+    .map((node) => ({ id: node.courseId, name: node.name, courseCode: node.courseCode }));
 
   return (
     <main className="mx-auto flex max-w-6xl flex-col gap-4 p-4" dir="rtl">
@@ -77,6 +89,8 @@ export default async function DashboardPage() {
           <CurriculumMapView viewModel={viewModel} />
         </CardContent>
       </Card>
+
+      <SemesterPlanSection semesters={semesters} availableCourses={availableCourses} />
 
       <div className="flex flex-wrap items-center gap-4 text-sm">
         <Link href="/profile" className="underline">

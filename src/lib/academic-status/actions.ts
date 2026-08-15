@@ -12,10 +12,16 @@ import {
 } from "@/domain/academic-status";
 import { courseAttemptSchema, courseStatusSchema, semesterSchema } from "@/lib/academic-status/schemas";
 import { getCurriculumCourseIds } from "@/lib/academic-status/queries";
+import { buildAcademicState } from "@/lib/academic-rules/queries";
+import { evaluateCourseEligibility } from "@/domain/academic";
 
 export interface AcademicStatusActionState {
   error?: string;
   success?: string;
+  /// docs/04_Academic_Rules_Engine.md §20 — non-blocking Rules Engine
+  /// warnings for the change just made (set only when relevant, e.g. a
+  /// PLANNED course whose prerequisite was previously failed).
+  warnings?: string[];
 }
 
 function firstIssueMessage(error: { issues: { message: string }[] }): string {
@@ -65,6 +71,7 @@ export async function setCourseStatusAction(
   }
 
   let academicTermId: string | null = null;
+  let warnings: string[] | undefined;
   // docs/05_Curriculum_Data_Model.md §14.1 — PLANNED requires an intended term.
   if (status === "PLANNED") {
     if (!plannedTermCode) {
@@ -74,6 +81,19 @@ export async function setCourseStatusAction(
     if (!parsedTerm) {
       return { error: "Enter a valid academic term code (e.g. 4051)." };
     }
+
+    // docs/02_User_Flow.md §8, §11 — planning a course requires Rules Engine
+    // validation before it's added; invalid -> show the reason, don't add.
+    // Scoped to PLANNED only: other status transitions keep Phase 5's
+    // unrestricted "any status may be set directly" behavior (history
+    // correction, not new planning).
+    const academicState = await buildAcademicState(profile.id, profile.curriculumId);
+    const eligibility = evaluateCourseEligibility(academicState, courseId);
+    if (!eligibility.allowed) {
+      return { error: eligibility.reasons.join(" ") };
+    }
+    if (eligibility.warnings.length > 0) warnings = eligibility.warnings;
+
     const term = await upsertAcademicTerm(plannedTermCode);
     academicTermId = term.id;
   }
@@ -87,7 +107,7 @@ export async function setCourseStatusAction(
   // No refresh() here: this row already reflects its own status locally
   // (CourseStatusRow's controlled Select), and unlike Advanced Mode it never
   // adds new elements to the page that only a fresh server render can reveal.
-  return { success: "Course status updated." };
+  return { success: "Course status updated.", warnings };
 }
 
 // docs/02_User_Flow.md §12 — Advanced Mode semester GPA entry.

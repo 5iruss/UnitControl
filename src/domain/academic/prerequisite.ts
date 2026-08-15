@@ -24,9 +24,11 @@ export function evaluatePrerequisite(
   const state = classifyAttemptState(prerequisiteCourseId, prerequisiteStatus, attempts);
 
   if (!state.everAttempted) {
+    // docs/04_Academic_Rules_Engine.md §20's own example uses this exact,
+    // course-id-free wording — reasons are user-facing text, not debug logs.
     return {
       satisfied: false,
-      reason: `Prerequisite has not been previously attempted (course id: ${prerequisiteCourseId}).`,
+      reason: "Prerequisite has not been previously attempted.",
     };
   }
 

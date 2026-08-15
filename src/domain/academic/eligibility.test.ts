@@ -74,7 +74,7 @@ describe("evaluateCourseEligibility — prerequisites", () => {
     const result = evaluateCourseEligibility(state, "course-b");
     expect(result.allowed).toBe(false);
     expect(result.status).toBe("BLOCKED");
-    expect(result.reasons[0]).toContain("course-a");
+    expect(result.reasons[0]).toBe("Prerequisite has not been previously attempted.");
   });
 
   it("blocks when the prerequisite is only planned", () => {
@@ -132,7 +132,10 @@ describe("evaluateCourseEligibility — prerequisites", () => {
     });
     const result = evaluateCourseEligibility(state, "course-b");
     expect(result.allowed).toBe(false);
-    expect(result.reasons[0]).toContain("course-c");
+    // Exactly one reason: course-a (PASSED) is satisfied and contributes
+    // nothing; only the unmet course-c prerequisite blocks.
+    expect(result.reasons).toHaveLength(1);
+    expect(result.reasons[0]).toBe("Prerequisite has not been previously attempted.");
   });
 
   it("allows when all of multiple prerequisites are satisfied", () => {
