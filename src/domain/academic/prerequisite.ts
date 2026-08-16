@@ -28,7 +28,7 @@ export function evaluatePrerequisite(
     // course-id-free wording — reasons are user-facing text, not debug logs.
     return {
       satisfied: false,
-      reason: "Prerequisite has not been previously attempted.",
+      reason: "پیش‌نیاز این درس تاکنون اخذ نشده است.",
     };
   }
 

@@ -21,13 +21,18 @@ export function RecommendationsPanel({ data }: RecommendationsPanelProps) {
     <div className="grid gap-4 md:grid-cols-2" dir="rtl">
       <Card>
         <CardHeader>
-          <CardTitle>Recommended courses</CardTitle>
+          <CardTitle>پیشنهادهای درسی</CardTitle>
         </CardHeader>
         <CardContent>
           {data.courseRecommendations.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No recommended courses right now.</p>
+            <p className="text-sm text-muted-foreground">در حال حاضر پیشنهاد درسی وجود ندارد.</p>
           ) : (
-            <ul className="flex flex-col gap-3">
+            // docs Redesign prompt §21 — "Keep it compact." A student early in
+            // their curriculum can have upward of a hundred not-yet-blocked
+            // courses; every recommendation is still rendered (nothing is
+            // dropped from the Rules Engine's output), just within a bounded,
+            // scrollable height instead of pushing the rest of the page down.
+            <ul className="flex max-h-80 flex-col gap-3 overflow-y-auto">
               {data.courseRecommendations.map((course) => {
                 const availability = AVAILABILITY_META[course.eligibility.status];
                 const AvailabilityIcon = availability.icon;
@@ -37,7 +42,7 @@ export function RecommendationsPanel({ data }: RecommendationsPanelProps) {
                       <p className="font-medium">{course.name}</p>
                       <span
                         className="flex items-center gap-1 text-xs text-muted-foreground"
-                        aria-label={`Availability: ${availability.label}`}
+                        aria-label={`وضعیت انتخاب: ${availability.label}`}
                       >
                         <AvailabilityIcon className="size-3.5" aria-hidden />
                         {availability.label}
@@ -57,13 +62,13 @@ export function RecommendationsPanel({ data }: RecommendationsPanelProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Academic warnings</CardTitle>
+          <CardTitle>هشدارهای تحصیلی</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           {!hasWarnings ? (
-            <p className="text-sm text-muted-foreground">No academic warnings right now.</p>
+            <p className="text-sm text-muted-foreground">در حال حاضر هشدار تحصیلی وجود ندارد.</p>
           ) : (
-            <ul className="flex flex-col gap-3">
+            <ul className="flex max-h-80 flex-col gap-3 overflow-y-auto">
               {data.failedCourseWarnings.map((item) => (
                 <li key={`failed-${item.courseId}`} className="border-b pb-2 text-sm last:border-b-0">
                   <div className="flex items-center gap-1.5 font-medium">
@@ -75,7 +80,7 @@ export function RecommendationsPanel({ data }: RecommendationsPanelProps) {
                   </div>
                   <p className="text-xs text-amber-700 dark:text-amber-400">{item.warning.reason}</p>
                   <p className="text-xs text-muted-foreground">
-                    Suggested action: {item.warning.suggestedAction}
+                    اقدام پیشنهادی: {item.warning.suggestedAction}
                   </p>
                 </li>
               ))}
@@ -93,7 +98,7 @@ export function RecommendationsPanel({ data }: RecommendationsPanelProps) {
                       </span>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Planned for {alert.termCode} — {availability.label}.
+                      برنامه‌ریزی‌شده برای ترم <span dir="ltr">{alert.termCode}</span> — {availability.label}.
                     </p>
                     {alert.eligibility.reasons.length > 0 && (
                       <p className="text-xs text-destructive">{alert.eligibility.reasons.join(" ")}</p>

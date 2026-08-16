@@ -12,7 +12,7 @@ export default async function RegisterPage() {
     <main className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>Create your UnitControl account</CardTitle>
+          <CardTitle>ساخت حساب کاربری پونیت کنترل</CardTitle>
         </CardHeader>
         <CardContent>
           <RegisterForm />

@@ -7,12 +7,12 @@ import { z } from "zod";
 export const profileSchema = z.object({
   entryYear: z.coerce
     .number()
-    .int("Entry year must be a whole number.")
-    .positive("Entry year must be a positive number."),
-  major: z.string().trim().min(1, "Major is required."),
-  orientation: z.string().trim().min(1, "Orientation is required."),
+    .int("سال ورود باید یک عدد صحیح باشد.")
+    .positive("سال ورود باید عددی مثبت باشد."),
+  major: z.string().trim().min(1, "رشته الزامی است."),
+  orientation: z.string().trim().min(1, "گرایش الزامی است."),
   studyType: z.enum(["FULL_TIME", "PART_TIME"], {
-    error: "Select a study type.",
+    error: "نوع تحصیل را انتخاب کنید.",
   }),
 });
 

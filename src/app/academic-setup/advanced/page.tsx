@@ -44,11 +44,11 @@ export default async function AdvancedAcademicSetupPage() {
 
   return (
     <main className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
-      <h1 className="text-xl font-semibold">Advanced academic setup</h1>
+      <h1 className="text-xl font-semibold">تنظیم پیشرفته سوابق تحصیلی</h1>
 
       <Card>
         <CardHeader>
-          <CardTitle>Add a semester</CardTitle>
+          <CardTitle>افزودن ترم</CardTitle>
         </CardHeader>
         <CardContent>
           <SemesterForm />
@@ -57,7 +57,7 @@ export default async function AdvancedAcademicSetupPage() {
 
       {semesters.length === 0 && (
         <p className="text-sm text-muted-foreground">
-          No semesters recorded yet. Add one above to start entering your academic history.
+          هنوز ترمی ثبت نشده است. برای شروع ثبت سوابق تحصیلی، یک ترم از بالا اضافه کنید.
         </p>
       )}
 
@@ -69,7 +69,8 @@ export default async function AdvancedAcademicSetupPage() {
           <Card key={semester.id}>
             <CardHeader>
               <CardTitle>
-                {semester.academicTerm.termCode} — GPA {semester.semesterGpa.toString()}
+                ترم <span dir="ltr">{semester.academicTerm.termCode}</span> — معدل{" "}
+                <span dir="ltr">{semester.semesterGpa.toString()}</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-3">
@@ -88,11 +89,11 @@ export default async function AdvancedAcademicSetupPage() {
 
       <div className="flex items-center justify-between">
         <Link href="/dashboard" className="text-sm underline">
-          Back to dashboard
+          بازگشت به داشبورد
         </Link>
         {!profile.academicSetupCompletedAt && (
           <form action={finishAcademicSetupAction}>
-            <Button type="submit">Continue to dashboard</Button>
+            <Button type="submit">ادامه به داشبورد</Button>
           </form>
         )}
       </div>

@@ -33,7 +33,7 @@ describe("computeFailedCourseRisk", () => {
   it("returns a warning noting missing term data when Simple Mode recorded FAILED with no attempt history", () => {
     const risk = computeFailedCourseRisk("course-a", "FAILED", []);
     expect(risk).not.toBeNull();
-    expect(risk?.reason).toContain("no academic term is recorded");
+    expect(risk?.reason).toContain("ترمی برای این تلاش ثبت نشده است");
   });
 
   it("uses the most recent failed term when multiple failed attempts exist for the course", () => {
@@ -50,7 +50,7 @@ describe("computeFailedCourseRisk", () => {
     const risk = computeFailedCourseRisk("course-a", "FAILED", [
       { courseId: "course-b", termCode: "4051", result: "FAILED" },
     ]);
-    expect(risk?.reason).toContain("no academic term is recorded");
+    expect(risk?.reason).toContain("ترمی برای این تلاش ثبت نشده است");
   });
 
   it("never sets a blocking status: the warning contract has no allowed/status field", () => {

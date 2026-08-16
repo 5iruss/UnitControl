@@ -63,7 +63,7 @@ export function buildCourseRecommendations(
       // relationships to have satisfied.
       reasons:
         c.eligibility.status === "AVAILABLE"
-          ? ["No prerequisite or corequisite restriction currently blocks this course."]
+          ? ["هیچ محدودیت پیش‌نیاز یا هم‌نیازی این درس را مسدود نکرده است."]
           : c.eligibility.warnings,
     }))
     .sort((a, b) => {

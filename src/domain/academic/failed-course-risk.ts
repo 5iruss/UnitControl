@@ -50,14 +50,14 @@ export function computeFailedCourseRisk(
   const failureTerm = mostRecentFailedTerm(courseId, attempts);
   const reason =
     failureTerm === null
-      ? "This course was marked failed, but no academic term is recorded for the attempt (Simple Mode), so the recovery-window status cannot be determined."
-      : `This course was failed in term ${failureTerm}. Project rule: two semesters to pass it (docs/04_Academic_Rules_Engine.md §5); the exact counting method and whether an expired window blocks later courses are unverified.`;
+      ? "این درس مردود ثبت شده، اما ترمی برای این تلاش ثبت نشده است (حالت ساده)، بنابراین وضعیت مهلت جبران قابل تعیین نیست."
+      : `این درس در ترم ${failureTerm} مردود شده است. قانون پروژه: دو ترم فرصت برای پاس‌کردن آن (docs/04_Academic_Rules_Engine.md §5)؛ روش دقیق شمارش و اینکه آیا اتمام مهلت مانع دروس بعدی می‌شود یا نه، هنوز تأیید نشده است.`;
 
   return {
     type: "FAILED_COURSE_RISK",
     severity: "WARNING",
     courseId,
     reason,
-    suggestedAction: "Retake the course within the permitted period.",
+    suggestedAction: "درس را در مهلت مجاز مجدداً اخذ کنید.",
   };
 }

@@ -1,26 +1,27 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getStudentProfile } from "@/lib/academic-profile/queries";
 import { buildAcademicState } from "@/lib/academic-rules/queries";
 import { getCurriculumMapData } from "@/lib/curriculum-map/queries";
 import { getSemesterPlan } from "@/lib/semester-planning/queries";
 import { getRecommendations } from "@/lib/recommendations/queries";
-import { LogoutButton } from "@/components/logout-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { CurriculumMapView } from "@/components/curriculum-map/curriculum-map-view";
 import { SemesterPlanSection } from "@/components/semester-planning/semester-plan-section";
 import { RecommendationsPanel } from "@/components/recommendations/recommendations-panel";
-import { STATUS_META } from "@/components/curriculum-map/status-meta";
+import { WorkspaceHeader } from "@/components/dashboard/workspace-header";
+import { AcademicProgressSummary } from "@/components/dashboard/academic-progress-summary";
+import { WorkspaceFooter } from "@/components/dashboard/workspace-footer";
+import { calculateCourseProgress } from "@/domain/academic-status";
 import type { CourseStatus } from "@/domain/academic";
 
-const STATUS_ORDER = Object.keys(STATUS_META) as CourseStatus[];
-
-// docs/03_UX_UI_Specification.md §4 — the Dashboard is built around the
-// interactive curriculum map (Phase 7). Student info, filters, status
-// toolbar, statistics, and the map itself all live here; there is no
-// separate term-based layout.
+// docs/03_UX_UI_Specification.md §4 — the Dashboard is a single Persian/RTL
+// academic workspace built around the interactive curriculum map (docs
+// Redesign prompt §3, §10): student context, then the curriculum/course
+// pipeline as the primary content, then planning/warnings/recommendations/
+// progress as supporting sections. No separate term-based layout, and no
+// standalone "academic path" section (docs Redesign prompt §6) — the
+// pipeline lives inside the curriculum map only.
 export default async function DashboardPage() {
   const user = await getCurrentUser();
   if (!user || user.role !== "STUDENT") redirect("/login");
@@ -63,44 +64,28 @@ export default async function DashboardPage() {
     .filter((node) => node.status !== "PASSED")
     .map((node) => ({ id: node.courseId, name: node.name, courseCode: node.courseCode }));
 
+  const totalCount = viewModel.nodes.length;
+  const progress = calculateCourseProgress(statusCounts, totalCount);
+
   return (
-    <main className="mx-auto flex max-w-6xl flex-col gap-4 p-4" dir="rtl">
-      <div className="flex flex-row flex-wrap items-center justify-between gap-2">
-        <h1 className="text-xl font-semibold">
-          Welcome, {user.firstName} {user.lastName}.
-        </h1>
-        <LogoutButton redirectTo="/login" />
-      </div>
-
-      <Card>
-        <CardContent className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted-foreground">
-          <span>
-            Student number: <span dir="ltr">{user.studentNumber}</span>
-          </span>
-          <span>Entry year: {profile.entryYear}</span>
-          <span>
-            Major/orientation: {profile.major} — {profile.orientation}
-          </span>
-          <span>Study type: {profile.studyType === "FULL_TIME" ? "Full-time" : "Part-time"}</span>
-          <span>Curriculum: {curriculumName}</span>
-        </CardContent>
-      </Card>
-
-      <div className="flex flex-wrap gap-2">
-        {STATUS_ORDER.map((status) => {
-          const StatusIcon = STATUS_META[status].icon;
-          return (
-            <Badge key={status} variant="outline">
-              <StatusIcon aria-hidden />
-              {STATUS_META[status].label}: {statusCounts.get(status) ?? 0}
-            </Badge>
-          );
-        })}
-      </div>
+    <main className="mx-auto flex max-w-6xl flex-col gap-4 p-4">
+      <WorkspaceHeader
+        firstName={user.firstName}
+        lastName={user.lastName}
+        studentNumber={user.studentNumber}
+        major={profile.major}
+        orientation={profile.orientation}
+        entryYear={profile.entryYear}
+        studyType={profile.studyType}
+        curriculumName={curriculumName}
+        statusCounts={statusCounts}
+        totalCount={totalCount}
+        progress={progress}
+      />
 
       <Card>
         <CardHeader>
-          <CardTitle>Curriculum map</CardTitle>
+          <CardTitle>نقشه دروس (ساختار برنامه درسی)</CardTitle>
         </CardHeader>
         <CardContent>
           <CurriculumMapView viewModel={viewModel} />
@@ -109,19 +94,16 @@ export default async function DashboardPage() {
 
       <RecommendationsPanel data={recommendations} />
 
-      <SemesterPlanSection semesters={semesters} availableCourses={availableCourses} />
-
-      <div className="flex flex-wrap items-center gap-4 text-sm">
-        <Link href="/profile" className="underline">
-          Manage academic profile
-        </Link>
-        <Link href="/academic-status" className="underline">
-          Manage course statuses
-        </Link>
-        <Link href="/academic-setup/advanced" className="underline">
-          Record a semester
-        </Link>
+      <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
+        <SemesterPlanSection semesters={semesters} availableCourses={availableCourses} />
+        <AcademicProgressSummary
+          statusCounts={statusCounts}
+          totalCount={totalCount}
+          progress={progress}
+        />
       </div>
+
+      <WorkspaceFooter />
     </main>
   );
 }

@@ -16,15 +16,15 @@ export function SemesterPlanSection({ semesters, availableCourses }: SemesterPla
   return (
     <Card dir="rtl">
       <CardHeader>
-        <CardTitle>Planned semesters</CardTitle>
+        <CardTitle>برنامه ترم‌ها</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <AddPlannedCourseForm courses={availableCourses} />
 
         {semesters.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            No courses planned yet. Select a course above, or choose &quot;Planned&quot; for a
-            course on the curriculum map, and enter an intended term to start planning a semester.
+            هنوز درسی برنامه‌ریزی نشده است. یک درس را از بالا انتخاب کنید، یا وضعیت
+            &quot;برنامه‌ریزی‌شده&quot; را برای یک درس در نقشه دروس انتخاب و ترم مدنظر را وارد کنید.
           </p>
         ) : (
           semesters.map((semester) => (
@@ -37,7 +37,7 @@ export function SemesterPlanSection({ semesters, availableCourses }: SemesterPla
                   </span>
                 </h3>
                 <span className="text-xs text-muted-foreground">
-                  {semester.courses.length} course{semester.courses.length === 1 ? "" : "s"}
+                  {semester.courses.length} درس
                 </span>
               </div>
               <ul>

@@ -23,7 +23,7 @@ export default async function ProfilePage() {
     <main className="flex min-h-screen flex-col items-center justify-center gap-4 p-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>Academic profile</CardTitle>
+          <CardTitle>پروفایل تحصیلی</CardTitle>
         </CardHeader>
         <CardContent>
           <ProfileForm
@@ -35,13 +35,13 @@ export default async function ProfilePage() {
               orientation: profile.orientation,
               studyType: profile.studyType,
             }}
-            submitLabel="Save changes"
+            submitLabel="ذخیره تغییرات"
             mode="edit"
           />
         </CardContent>
       </Card>
       <Link href="/dashboard" className="text-sm underline">
-        Back to dashboard
+        بازگشت به داشبورد
       </Link>
     </main>
   );

@@ -63,7 +63,7 @@ export function CourseStatusRow({
       </div>
 
       <Select name="status" value={status} onValueChange={(value) => setStatus(value as CourseStatusValue)}>
-        <SelectTrigger aria-label={`Status for ${courseName}`}>
+        <SelectTrigger aria-label={`وضعیت ${courseName}`}>
           <SelectValue>
             {(value: CourseStatusValue) => STATUS_LABEL_BY_VALUE.get(value) ?? value}
           </SelectValue>
@@ -80,7 +80,7 @@ export function CourseStatusRow({
       {status === "PLANNED" && (
         <Input
           name="plannedTermCode"
-          aria-label={`Intended term for ${courseName}`}
+          aria-label={`ترم مدنظر برای ${courseName}`}
           placeholder="4051"
           defaultValue={currentTermCode ?? ""}
           className="w-24"
@@ -88,8 +88,8 @@ export function CourseStatusRow({
         />
       )}
 
-      <Button type="submit" size="sm" aria-label={`Save status for ${courseName}`} disabled={pending}>
-        {pending ? "Saving…" : "Save"}
+      <Button type="submit" size="sm" aria-label={`ذخیره وضعیت ${courseName}`} disabled={pending}>
+        {pending ? "در حال ذخیره…" : "ذخیره"}
       </Button>
 
       {state.error && (

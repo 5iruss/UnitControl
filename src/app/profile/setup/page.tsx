@@ -21,13 +21,13 @@ export default async function ProfileSetupPage() {
     <main className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>Set up your academic profile</CardTitle>
+          <CardTitle>تکمیل پروفایل تحصیلی</CardTitle>
         </CardHeader>
         <CardContent>
           <ProfileForm
             action={createProfileAction}
             curricula={curricula}
-            submitLabel="Continue"
+            submitLabel="ادامه"
             mode="create"
           />
         </CardContent>

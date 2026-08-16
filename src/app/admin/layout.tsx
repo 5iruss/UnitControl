@@ -53,7 +53,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
             <span>
               {user.firstName} {user.lastName} ({ROLE_LABEL[user.role]})
             </span>
-            <LogoutButton redirectTo="/admin/login" />
+            <LogoutButton redirectTo="/admin/login" label="Log out" />
           </div>
         </header>
       )}

@@ -55,7 +55,7 @@ describe("buildSemesterPlanViewModel", () => {
 
   it("produces a human-readable term label", () => {
     const result = buildSemesterPlanViewModel([planned({ termCode: "4051" })]);
-    expect(result[0].termLabel).toBe("Mehr 1405");
+    expect(result[0].termLabel).toBe("مهر 1405");
   });
 
   it("sorts courses within a semester deterministically by name", () => {

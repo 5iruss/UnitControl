@@ -12,21 +12,21 @@ export const STATUS_META: Record<
   CourseStatus,
   { label: string; icon: typeof Circle; className: string }
 > = {
-  PASSED: { label: "Passed", icon: CheckCircle2, className: "text-emerald-600 dark:text-emerald-400" },
-  FAILED: { label: "Failed", icon: XCircle, className: "text-red-600 dark:text-red-400" },
-  CURRENTLY_STUDYING: { label: "Currently studying", icon: Clock, className: "text-blue-600 dark:text-blue-400" },
-  PLANNED: { label: "Planned", icon: CalendarClock, className: "text-amber-600 dark:text-amber-400" },
-  NOT_COMPLETED: { label: "Not completed", icon: Circle, className: "text-muted-foreground" },
+  PASSED: { label: "گذرانده", icon: CheckCircle2, className: "text-emerald-600 dark:text-emerald-400" },
+  FAILED: { label: "مردود", icon: XCircle, className: "text-red-600 dark:text-red-400" },
+  CURRENTLY_STUDYING: { label: "در حال تحصیل", icon: Clock, className: "text-blue-600 dark:text-blue-400" },
+  PLANNED: { label: "برنامه‌ریزی‌شده", icon: CalendarClock, className: "text-amber-600 dark:text-amber-400" },
+  NOT_COMPLETED: { label: "گذرانده نشده", icon: Circle, className: "text-muted-foreground" },
 };
 
 export const AVAILABILITY_META: Record<
   AvailabilityStatus,
   { label: string; icon: typeof Circle; borderClassName: string }
 > = {
-  AVAILABLE: { label: "Available", icon: CheckCircle2, borderClassName: "border-emerald-500/50" },
-  BLOCKED: { label: "Blocked", icon: Ban, borderClassName: "border-red-500/60" },
+  AVAILABLE: { label: "قابل انتخاب", icon: CheckCircle2, borderClassName: "border-emerald-500/50" },
+  BLOCKED: { label: "غیرقابل انتخاب", icon: Ban, borderClassName: "border-red-500/60" },
   AVAILABLE_WITH_WARNING: {
-    label: "Available with warning",
+    label: "قابل انتخاب با هشدار",
     icon: TriangleAlert,
     borderClassName: "border-amber-500/60",
   },

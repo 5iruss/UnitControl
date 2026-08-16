@@ -43,7 +43,7 @@ export async function createProfileAction(
   if (!curriculum) {
     return {
       error:
-        "No curriculum matches the provided entry year, major, and orientation. Please check your selections.",
+        "با سال ورود، رشته و گرایش واردشده هیچ برنامه تحصیلی مطابقتی پیدا نشد. انتخاب‌های خود را بررسی کنید.",
     };
   }
 
@@ -86,7 +86,7 @@ export async function updateProfileAction(
   if (!curriculum) {
     return {
       error:
-        "No curriculum matches the provided entry year, major, and orientation. Please check your selections.",
+        "با سال ورود، رشته و گرایش واردشده هیچ برنامه تحصیلی مطابقتی پیدا نشد. انتخاب‌های خود را بررسی کنید.",
     };
   }
 

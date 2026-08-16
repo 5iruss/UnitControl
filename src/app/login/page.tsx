@@ -12,7 +12,7 @@ export default async function LoginPage() {
     <main className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>Log in to UnitControl</CardTitle>
+          <CardTitle>ورود به پونیت کنترل</CardTitle>
         </CardHeader>
         <CardContent>
           <LoginForm />

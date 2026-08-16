@@ -35,7 +35,7 @@ export function AddPlannedCourseForm({ courses }: AddPlannedCourseFormProps) {
     event.preventDefault();
     setError(null);
     if (!courseId) {
-      setError("Select a course.");
+      setError("یک درس را انتخاب کنید.");
       return;
     }
     const formData = new FormData();
@@ -57,10 +57,10 @@ export function AddPlannedCourseForm({ courses }: AddPlannedCourseFormProps) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-2 border-b pb-3">
       <div className="flex flex-col gap-1">
-        <Label htmlFor="plan-course">Course</Label>
+        <Label htmlFor="plan-course">درس</Label>
         <Select value={courseId} onValueChange={(value) => setCourseId(value ?? "")}>
-          <SelectTrigger id="plan-course" className="w-full sm:w-64" aria-label="Course to plan">
-            <SelectValue placeholder="Select a course">
+          <SelectTrigger id="plan-course" className="w-full sm:w-64" aria-label="درس مورد نظر برای برنامه‌ریزی">
+            <SelectValue placeholder="یک درس را انتخاب کنید">
               {(value: string) => courseNameById.get(value) ?? value}
             </SelectValue>
           </SelectTrigger>
@@ -75,10 +75,10 @@ export function AddPlannedCourseForm({ courses }: AddPlannedCourseFormProps) {
       </div>
 
       <div className="flex flex-col gap-1">
-        <Label htmlFor="plan-term">Term</Label>
+        <Label htmlFor="plan-term">ترم</Label>
         <Input
           id="plan-term"
-          aria-label="Intended term"
+          aria-label="ترم مدنظر"
           placeholder="4051"
           value={termCode}
           onChange={(event) => setTermCode(event.target.value)}
@@ -88,7 +88,7 @@ export function AddPlannedCourseForm({ courses }: AddPlannedCourseFormProps) {
       </div>
 
       <Button type="submit" disabled={isPending}>
-        {isPending ? "Adding…" : "Add to plan"}
+        {isPending ? "در حال افزودن…" : "افزودن به برنامه"}
       </Button>
 
       {error && (

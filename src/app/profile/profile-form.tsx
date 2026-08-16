@@ -64,7 +64,7 @@ export function ProfileForm({
       className="flex flex-col gap-4"
     >
       <div className="flex flex-col gap-2">
-        <Label htmlFor="entryYear">Entry year</Label>
+        <Label htmlFor="entryYear">سال ورود</Label>
         <Input
           id="entryYear"
           name="entryYear"
@@ -73,18 +73,19 @@ export function ProfileForm({
           value={entryYear}
           onChange={(e) => setEntryYear(e.target.value)}
           placeholder="1403"
+          dir="ltr"
         />
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="major">Major</Label>
+        <Label htmlFor="major">رشته</Label>
         <Select
           name="major"
           value={selectedMajor}
           onValueChange={(value) => setSelectedMajor(value ?? "")}
         >
           <SelectTrigger id="major">
-            <SelectValue placeholder="Select a major" />
+            <SelectValue placeholder="یک رشته را انتخاب کنید" />
           </SelectTrigger>
           <SelectContent>
             {majors.map((major) => (
@@ -97,14 +98,14 @@ export function ProfileForm({
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="orientation">Orientation</Label>
+        <Label htmlFor="orientation">گرایش</Label>
         <Select
           name="orientation"
           value={orientation}
           onValueChange={(value) => setOrientation(value ?? "")}
         >
           <SelectTrigger id="orientation">
-            <SelectValue placeholder="Select an orientation" />
+            <SelectValue placeholder="یک گرایش را انتخاب کنید" />
           </SelectTrigger>
           <SelectContent>
             {orientations.map((o) => (
@@ -117,18 +118,18 @@ export function ProfileForm({
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="studyType">Study type</Label>
+        <Label htmlFor="studyType">نوع تحصیل</Label>
         <Select
           name="studyType"
           value={studyType}
           onValueChange={(value) => setStudyType((value as typeof studyType) ?? "")}
         >
           <SelectTrigger id="studyType">
-            <SelectValue placeholder="Select a study type" />
+            <SelectValue placeholder="نوع تحصیل را انتخاب کنید" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="FULL_TIME">Full-time</SelectItem>
-            <SelectItem value="PART_TIME">Part-time</SelectItem>
+            <SelectItem value="FULL_TIME">تمام‌وقت</SelectItem>
+            <SelectItem value="PART_TIME">پاره‌وقت</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -142,17 +143,17 @@ export function ProfileForm({
       {showConfirmation && state.pendingReset && (
         <div className="flex flex-col gap-3 rounded-md border border-destructive/40 bg-destructive/5 p-3">
           <p className="text-sm">
-            Changing to <strong>{state.pendingReset.curriculumName}</strong> will reset your
-            existing academic course-status data. You will need to reconfigure your academic
-            status afterward. This cannot be undone.
+            تغییر به <strong>{state.pendingReset.curriculumName}</strong> باعث حذف داده‌های وضعیت
+            دروس تحصیلی فعلی شما می‌شود. پس از آن باید وضعیت تحصیلی خود را دوباره تنظیم کنید. این
+            عملیات قابل بازگشت نیست.
           </p>
           <input type="hidden" name="confirmReset" value="true" />
           <div className="flex gap-2">
             <Button type="submit" variant="destructive">
-              Yes, reset and continue
+              بله، بازنشانی و ادامه
             </Button>
             <Button type="button" variant="outline" onClick={() => setConfirmDismissed(true)}>
-              Cancel
+              انصراف
             </Button>
           </div>
         </div>
@@ -160,13 +161,13 @@ export function ProfileForm({
 
       {!showConfirmation && (
         <Button type="submit" disabled={pending}>
-          {pending ? "Saving…" : submitLabel}
+          {pending ? "در حال ذخیره…" : submitLabel}
         </Button>
       )}
 
       {state.success && !state.pendingReset && (
         <p className="text-sm text-emerald-700 dark:text-emerald-400" role="status" aria-live="polite">
-          Profile saved.
+          پروفایل ذخیره شد.
         </p>
       )}
     </form>

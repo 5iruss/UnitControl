@@ -20,7 +20,7 @@ describe("evaluatePrerequisite", () => {
   it("is not satisfied when the prerequisite is CURRENTLY_STUDYING for the first time", () => {
     const result = evaluatePrerequisite("course-a", "CURRENTLY_STUDYING", []);
     expect(result.satisfied).toBe(false);
-    expect(result.reason).toBe("Prerequisite has not been previously attempted.");
+    expect(result.reason).toBe("پیش‌نیاز این درس تاکنون اخذ نشده است.");
   });
 
   it("is satisfied when CURRENTLY_STUDYING but a prior FAILED attempt exists (retake)", () => {

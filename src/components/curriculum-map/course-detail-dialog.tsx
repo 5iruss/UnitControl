@@ -156,17 +156,17 @@ export function CourseDetailDialog(props: CourseDetailDialogProps) {
         )}
 
         <div className="flex flex-col gap-1 text-xs">
-          <p className="font-medium text-foreground">Relationships</p>
+          <p className="font-medium text-foreground">پیش‌نیازها و هم‌نیازها</p>
           {relationships.length === 0 ? (
             <p className="text-muted-foreground">
-              No verified prerequisite or corequisite relationships for this course.
+              هیچ پیش‌نیاز یا هم‌نیاز تأییدشده‌ای برای این درس ثبت نشده است.
             </p>
           ) : (
             relationships.map((rel) => (
               <p key={`${rel.relationshipType}-${rel.otherCourseId}`} className="text-muted-foreground">
-                {rel.direction === "requires" && `Requires prerequisite: ${rel.otherCourseName}`}
-                {rel.direction === "requiredBy" && `Is a prerequisite for: ${rel.otherCourseName}`}
-                {rel.direction === "corequisite" && `Corequisite: ${rel.otherCourseName}`}
+                {rel.direction === "requires" && `نیازمند پیش‌نیاز: ${rel.otherCourseName}`}
+                {rel.direction === "requiredBy" && `پیش‌نیاز درس: ${rel.otherCourseName}`}
+                {rel.direction === "corequisite" && `هم‌نیاز: ${rel.otherCourseName}`}
               </p>
             ))
           )}
@@ -174,12 +174,12 @@ export function CourseDetailDialog(props: CourseDetailDialogProps) {
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-3 border-t pt-3">
           <div className="flex flex-col gap-1">
-            <Label htmlFor="detail-status">Status</Label>
+            <Label htmlFor="detail-status">وضعیت</Label>
             <Select
               value={status}
               onValueChange={(value) => setStatus(value as CourseStatusValue)}
             >
-              <SelectTrigger id="detail-status" aria-label="Status">
+              <SelectTrigger id="detail-status" aria-label="وضعیت">
                 <SelectValue>
                   {(value: CourseStatusValue) => STATUS_LABEL_BY_VALUE.get(value) ?? value}
                 </SelectValue>
@@ -196,10 +196,10 @@ export function CourseDetailDialog(props: CourseDetailDialogProps) {
 
           {status === "PLANNED" && (
             <div className="flex flex-col gap-1">
-              <Label htmlFor="detail-term">Intended term</Label>
+              <Label htmlFor="detail-term">ترم مدنظر</Label>
               <Input
                 id="detail-term"
-                aria-label="Intended term"
+                aria-label="ترم مدنظر"
                 placeholder="4051"
                 value={termCode}
                 onChange={(event) => setTermCode(event.target.value)}
@@ -215,7 +215,7 @@ export function CourseDetailDialog(props: CourseDetailDialogProps) {
           )}
 
           <Button type="submit" disabled={isPending}>
-            {isPending ? "Saving…" : "Save status"}
+            {isPending ? "در حال ذخیره…" : "ذخیره وضعیت"}
           </Button>
         </form>
       </DialogContent>

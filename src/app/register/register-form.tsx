@@ -15,11 +15,11 @@ export function RegisterForm() {
   return (
     <form action={formAction} className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
-        <Label htmlFor="studentNumber">Student number</Label>
+        <Label htmlFor="studentNumber">شماره دانشجویی</Label>
         <Input id="studentNumber" name="studentNumber" required autoComplete="username" dir="ltr" />
       </div>
       <div className="flex flex-col gap-2">
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="password">رمز عبور</Label>
         <Input
           id="password"
           name="password"
@@ -29,15 +29,15 @@ export function RegisterForm() {
         />
       </div>
       <div className="flex flex-col gap-2">
-        <Label htmlFor="firstName">First name</Label>
+        <Label htmlFor="firstName">نام</Label>
         <Input id="firstName" name="firstName" required autoComplete="given-name" />
       </div>
       <div className="flex flex-col gap-2">
-        <Label htmlFor="lastName">Last name</Label>
+        <Label htmlFor="lastName">نام خانوادگی</Label>
         <Input id="lastName" name="lastName" required autoComplete="family-name" />
       </div>
       <div className="flex flex-col gap-2">
-        <Label htmlFor="phoneNumber">Phone number</Label>
+        <Label htmlFor="phoneNumber">شماره تلفن</Label>
         <Input
           id="phoneNumber"
           name="phoneNumber"
@@ -49,12 +49,12 @@ export function RegisterForm() {
       </div>
       {state.error && <p className="text-sm text-destructive" role="alert">{state.error}</p>}
       <Button type="submit" disabled={pending}>
-        {pending ? "Creating account…" : "Create account"}
+        {pending ? "در حال ساخت حساب…" : "ساخت حساب"}
       </Button>
       <p className="text-sm text-muted-foreground">
-        Already have an account?{" "}
+        قبلاً حساب کاربری دارید؟{" "}
         <Link href="/login" className="underline">
-          Log in
+          ورود
         </Link>
       </p>
     </form>

@@ -13,6 +13,6 @@ describe("evaluateCorequisite", () => {
       { sourceCourseId: "course-a", targetCourseId: "course-b", relationshipType: "COREQUISITE" },
     ]);
     expect(result.hasRelationship).toBe(true);
-    expect(result.warning).toContain("unverified");
+    expect(result.warning).toContain("تأیید نشده");
   });
 });

@@ -28,7 +28,7 @@ export function evaluateCourseEligibility(state: AcademicState, courseId: string
     return {
       allowed: false,
       status: "BLOCKED",
-      reasons: ["This course is not part of the student's curriculum."],
+      reasons: ["این درس در برنامه تحصیلی شما وجود ندارد."],
       warnings: [],
     };
   }
@@ -41,7 +41,7 @@ export function evaluateCourseEligibility(state: AcademicState, courseId: string
     return {
       allowed: false,
       status: "BLOCKED",
-      reasons: ["Course has already been passed."],
+      reasons: ["این درس قبلاً گذرانده شده است."],
       warnings: [],
     };
   }

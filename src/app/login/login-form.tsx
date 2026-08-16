@@ -15,11 +15,11 @@ export function LoginForm() {
   return (
     <form action={formAction} className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
-        <Label htmlFor="identifier">Student number or phone number</Label>
+        <Label htmlFor="identifier">شماره دانشجویی یا شماره تلفن</Label>
         <Input id="identifier" name="identifier" required autoComplete="username" dir="ltr" />
       </div>
       <div className="flex flex-col gap-2">
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="password">رمز عبور</Label>
         <Input
           id="password"
           name="password"
@@ -30,12 +30,12 @@ export function LoginForm() {
       </div>
       {state.error && <p className="text-sm text-destructive" role="alert">{state.error}</p>}
       <Button type="submit" disabled={pending}>
-        {pending ? "Logging in…" : "Log in"}
+        {pending ? "در حال ورود…" : "ورود"}
       </Button>
       <p className="text-sm text-muted-foreground">
-        No account yet?{" "}
+        هنوز حساب کاربری ندارید؟{" "}
         <Link href="/register" className="underline">
-          Register
+          ثبت‌نام
         </Link>
       </p>
     </form>

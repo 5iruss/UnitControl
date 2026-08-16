@@ -12,9 +12,9 @@ import {
 // (docs/05_Curriculum_Data_Model.md §14.1), checked in the action itself
 // since Zod's object-level refine would otherwise duplicate that branch.
 export const courseStatusSchema = z.object({
-  courseId: z.string().trim().min(1, "Course is required."),
+  courseId: z.string().trim().min(1, "درس الزامی است."),
   status: z.enum(COURSE_STATUS_VALUES as [CourseStatusValue, ...CourseStatusValue[]], {
-    error: "Select a valid course status.",
+    error: "وضعیت معتبری برای درس انتخاب کنید.",
   }),
   plannedTermCode: z
     .string()
@@ -31,11 +31,11 @@ export const semesterSchema = z.object({
   termCode: z
     .string()
     .trim()
-    .refine(isValidTermCode, "Enter a valid academic term code (e.g. 4051)."),
+    .refine(isValidTermCode, "کد ترم معتبر وارد کنید (مثلاً 4051)."),
   semesterGpa: z.coerce
-    .number({ error: "Enter a semester GPA." })
-    .nonnegative("Semester GPA cannot be negative.")
-    .finite("Enter a valid semester GPA."),
+    .number({ error: "معدل ترم را وارد کنید." })
+    .nonnegative("معدل ترم نمی‌تواند منفی باشد.")
+    .finite("معدل ترم معتبر وارد کنید."),
 });
 
 export type SemesterInput = z.infer<typeof semesterSchema>;
@@ -46,10 +46,10 @@ export const courseAttemptSchema = z.object({
   termCode: z
     .string()
     .trim()
-    .refine(isValidTermCode, "Enter a valid academic term code (e.g. 4051)."),
-  courseId: z.string().trim().min(1, "Course is required."),
+    .refine(isValidTermCode, "کد ترم معتبر وارد کنید (مثلاً 4051)."),
+  courseId: z.string().trim().min(1, "درس الزامی است."),
   result: z.enum(ATTEMPT_RESULT_VALUES as [AttemptResultValue, ...AttemptResultValue[]], {
-    error: "Select a valid result.",
+    error: "نتیجه معتبری انتخاب کنید.",
   }),
 });
 

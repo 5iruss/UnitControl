@@ -27,6 +27,6 @@ export function evaluateCorequisite(
   return {
     hasRelationship: true,
     warning:
-      "A corequisite relationship exists for this course, but the exact enforcement semantics (same semester vs. same-or-earlier) are unverified (docs/04_Academic_Rules_Engine.md §6). Manual review recommended.",
+      "این درس هم‌نیاز دارد، اما نحوه دقیق اعمال آن (هم‌زمان یا زودتر) هنوز تأیید نشده است (docs/04_Academic_Rules_Engine.md §6). بررسی دستی توصیه می‌شود.",
   };
 }

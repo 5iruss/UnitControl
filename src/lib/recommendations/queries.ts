@@ -38,13 +38,13 @@ async function getDataLimitations(
   if (curriculum.totalRequiredUnits === null || courseWithCredits === null) {
     notices.push({
       message:
-        "Unit-limit validation is unavailable because verified credit and total-required-unit information is not currently available for your curriculum.",
+        "بررسی سقف واحد در دسترس نیست، چون اطلاعات تأییدشده تعداد واحد دروس و کل واحدهای موردنیاز برنامه تحصیلی شما هنوز ثبت نشده است.",
     });
   }
   if (relationshipCount === 0) {
     notices.push({
       message:
-        "Prerequisite and corequisite validation currently has no verified relationships for your curriculum, so availability reflects course-status rules only.",
+        "در حال حاضر هیچ رابطه پیش‌نیاز یا هم‌نیاز تأییدشده‌ای برای برنامه تحصیلی شما ثبت نشده، بنابراین وضعیت انتخاب فقط بر اساس قوانین وضعیت درس تعیین می‌شود.",
     });
   }
   return notices;

@@ -14,12 +14,12 @@ test.describe("student registration and login", () => {
     const studentNumber = uniqueId("e2e-reg");
 
     await page.goto("/register");
-    await page.getByLabel("Student number").fill(studentNumber);
-    await page.getByLabel("Password").fill("CorrectPass123!");
-    await page.getByLabel("First name").fill("Sara");
-    await page.getByLabel("Last name").fill("Ahmadi");
-    await page.getByLabel("Phone number").fill(randomPhoneNumber());
-    await page.getByRole("button", { name: "Create account" }).click();
+    await page.getByLabel("شماره دانشجویی").fill(studentNumber);
+    await page.getByLabel("رمز عبور").fill("CorrectPass123!");
+    await page.getByLabel("نام", { exact: true }).fill("Sara");
+    await page.getByLabel("نام خانوادگی").fill("Ahmadi");
+    await page.getByLabel("شماره تلفن").fill(randomPhoneNumber());
+    await page.getByRole("button", { name: "ساخت حساب" }).click();
 
     await expect(page).toHaveURL("/profile/setup");
   });
@@ -28,15 +28,15 @@ test.describe("student registration and login", () => {
     const { studentNumber } = await seedStudent();
 
     await page.goto("/register");
-    await page.getByLabel("Student number").fill(studentNumber);
-    await page.getByLabel("Password").fill("CorrectPass123!");
-    await page.getByLabel("First name").fill("Dup");
-    await page.getByLabel("Last name").fill("Licate");
-    await page.getByLabel("Phone number").fill(randomPhoneNumber());
-    await page.getByRole("button", { name: "Create account" }).click();
+    await page.getByLabel("شماره دانشجویی").fill(studentNumber);
+    await page.getByLabel("رمز عبور").fill("CorrectPass123!");
+    await page.getByLabel("نام", { exact: true }).fill("Dup");
+    await page.getByLabel("نام خانوادگی").fill("Licate");
+    await page.getByLabel("شماره تلفن").fill(randomPhoneNumber());
+    await page.getByRole("button", { name: "ساخت حساب" }).click();
 
     await expect(
-      page.getByText("An account with this student number already exists."),
+      page.getByText("حسابی با این شماره دانشجویی قبلاً ثبت شده است."),
     ).toBeVisible();
     await expect(page).toHaveURL("/register");
   });
@@ -45,11 +45,11 @@ test.describe("student registration and login", () => {
     const { studentNumber } = await seedStudent();
 
     await page.goto("/login");
-    await page.getByLabel("Student number or phone number").fill(studentNumber);
-    await page.getByLabel("Password").fill("WrongPassword!");
-    await page.getByRole("button", { name: "Log in" }).click();
+    await page.getByLabel("شماره دانشجویی یا شماره تلفن").fill(studentNumber);
+    await page.getByLabel("رمز عبور").fill("WrongPassword!");
+    await page.getByRole("button", { name: "ورود" }).click();
 
-    await expect(page.getByText("Incorrect credentials.")).toBeVisible();
+    await expect(page.getByText("نام کاربری یا رمز عبور اشتباه است.")).toBeVisible();
     await expect(page).toHaveURL("/login");
   });
 
@@ -61,11 +61,11 @@ test.describe("student registration and login", () => {
     // fix that makes both paths run bcrypt is not observable here, but this
     // guards the functional behavior the fix touches).
     await page.goto("/login");
-    await page.getByLabel("Student number or phone number").fill(uniqueId("no-such-student"));
-    await page.getByLabel("Password").fill("WhateverPassword123!");
-    await page.getByRole("button", { name: "Log in" }).click();
+    await page.getByLabel("شماره دانشجویی یا شماره تلفن").fill(uniqueId("no-such-student"));
+    await page.getByLabel("رمز عبور").fill("WhateverPassword123!");
+    await page.getByRole("button", { name: "ورود" }).click();
 
-    await expect(page.getByText("Incorrect credentials.")).toBeVisible();
+    await expect(page.getByText("نام کاربری یا رمز عبور اشتباه است.")).toBeVisible();
     await expect(page).toHaveURL("/login");
   });
 
@@ -73,9 +73,9 @@ test.describe("student registration and login", () => {
     const { studentNumber, password } = await seedStudent();
 
     await page.goto("/login");
-    await page.getByLabel("Student number or phone number").fill(studentNumber);
-    await page.getByLabel("Password").fill(password);
-    await page.getByRole("button", { name: "Log in" }).click();
+    await page.getByLabel("شماره دانشجویی یا شماره تلفن").fill(studentNumber);
+    await page.getByLabel("رمز عبور").fill(password);
+    await page.getByRole("button", { name: "ورود" }).click();
 
     // A seeded student has no academic profile yet, so the dashboard guard
     // (docs/02_User_Flow.md §2) routes them to profile setup first.
@@ -153,9 +153,9 @@ test.describe("admin / support authentication", () => {
     await expect(page).toHaveURL("/admin/login");
 
     await page.goto("/login");
-    await page.getByLabel("Student number or phone number").fill(student.studentNumber);
-    await page.getByLabel("Password").fill(newPassword);
-    await page.getByRole("button", { name: "Log in" }).click();
+    await page.getByLabel("شماره دانشجویی یا شماره تلفن").fill(student.studentNumber);
+    await page.getByLabel("رمز عبور").fill(newPassword);
+    await page.getByRole("button", { name: "ورود" }).click();
     // A seeded student has no academic profile yet, so the dashboard guard
     // (docs/02_User_Flow.md §2) routes them to profile setup first.
     await expect(page).toHaveURL("/profile/setup");
@@ -180,9 +180,9 @@ test.describe("admin / support authentication", () => {
 
     // The student logs in first, establishing a session cookie in `page`.
     await page.goto("/login");
-    await page.getByLabel("Student number or phone number").fill(student.studentNumber);
-    await page.getByLabel("Password").fill(student.password);
-    await page.getByRole("button", { name: "Log in" }).click();
+    await page.getByLabel("شماره دانشجویی یا شماره تلفن").fill(student.studentNumber);
+    await page.getByLabel("رمز عبور").fill(student.password);
+    await page.getByRole("button", { name: "ورود" }).click();
     await expect(page).toHaveURL("/profile/setup");
 
     // Support resets the password from a separate browser context (a

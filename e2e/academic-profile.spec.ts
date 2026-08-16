@@ -13,17 +13,17 @@ import {
 
 async function selectOption(page: Page, triggerLabel: string, optionText: string) {
   await page.getByLabel(triggerLabel).click();
-  await page.getByRole("option", { name: optionText }).click();
+  await page.getByRole("option", { name: optionText, exact: true }).click();
 }
 
 async function fillProfileForm(
   page: Page,
   values: { entryYear: number; major: string; orientation: string; studyType: string },
 ) {
-  await page.getByLabel("Entry year").fill(String(values.entryYear));
-  await selectOption(page, "Major", values.major);
-  await selectOption(page, "Orientation", values.orientation);
-  await selectOption(page, "Study type", values.studyType);
+  await page.getByLabel("سال ورود").fill(String(values.entryYear));
+  await selectOption(page, "رشته", values.major);
+  await selectOption(page, "گرایش", values.orientation);
+  await selectOption(page, "نوع تحصیل", values.studyType);
 }
 
 function randomPhoneNumber(): string {
@@ -33,12 +33,12 @@ function randomPhoneNumber(): string {
 async function registerStudent(page: Page) {
   const studentNumber = uniqueId("e2e-profile");
   await page.goto("/register");
-  await page.getByLabel("Student number").fill(studentNumber);
-  await page.getByLabel("Password").fill("CorrectPass123!");
-  await page.getByLabel("First name").fill("Sara");
-  await page.getByLabel("Last name").fill("Ahmadi");
-  await page.getByLabel("Phone number").fill(randomPhoneNumber());
-  await page.getByRole("button", { name: "Create account" }).click();
+  await page.getByLabel("شماره دانشجویی").fill(studentNumber);
+  await page.getByLabel("رمز عبور").fill("CorrectPass123!");
+  await page.getByLabel("نام", { exact: true }).fill("Sara");
+  await page.getByLabel("نام خانوادگی").fill("Ahmadi");
+  await page.getByLabel("شماره تلفن").fill(randomPhoneNumber());
+  await page.getByRole("button", { name: "ساخت حساب" }).click();
   await expect(page).toHaveURL("/profile/setup");
   return { studentNumber };
 }
@@ -48,21 +48,21 @@ async function loginAsSeededStudent(
   credentials: { studentNumber: string; password: string },
 ) {
   await page.goto("/login");
-  await page.getByLabel("Student number or phone number").fill(credentials.studentNumber);
-  await page.getByLabel("Password").fill(credentials.password);
-  await page.getByRole("button", { name: "Log in" }).click();
+  await page.getByLabel("شماره دانشجویی یا شماره تلفن").fill(credentials.studentNumber);
+  await page.getByLabel("رمز عبور").fill(credentials.password);
+  await page.getByRole("button", { name: "ورود" }).click();
 }
 
 // Since Phase 5, profile creation lands on /academic-setup rather than
 // /dashboard directly (docs/02_User_Flow.md §2, §5). Tests that need actual
-// dashboard UI (logout, "Manage academic profile" link) must complete the
+// dashboard UI (logout, "مدیریت پروفایل تحصیلی" link) must complete the
 // one-time academic setup step first; Simple Mode with no statuses entered
 // is sufficient to unlock it.
 async function completeAcademicSetup(page: Page) {
   await expect(page).toHaveURL("/academic-setup");
-  await page.getByRole("link", { name: "Start Simple Mode" }).click();
+  await page.getByRole("link", { name: "شروع حالت ساده" }).click();
   await expect(page).toHaveURL("/academic-status");
-  await page.getByRole("button", { name: "Continue to dashboard" }).click();
+  await page.getByRole("button", { name: "ادامه به داشبورد" }).click();
   await expect(page).toHaveURL("/dashboard");
 }
 
@@ -76,17 +76,17 @@ test.describe("academic profile creation", () => {
       entryYear: 1401,
       major: "Computer Engineering",
       orientation: "Software Engineering",
-      studyType: "Full-time",
+      studyType: "تمام‌وقت",
     });
-    await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByRole("button", { name: "ادامه" }).click();
 
     await completeAcademicSetup(page);
     // getByRole scopes to the page's own <h1>, not Next.js's route
     // announcer (a hidden aria-live region that also mirrors the h1 text
     // for screen readers on navigation).
-    await expect(page.getByRole("heading", { name: "Welcome, Sara Ahmadi." })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "سلام، Sara Ahmadi" })).toBeVisible();
 
-    await page.getByRole("button", { name: "Log out" }).click();
+    await page.getByRole("button", { name: "خروج" }).click();
     await expect(page).toHaveURL("/login");
   });
 
@@ -97,9 +97,9 @@ test.describe("academic profile creation", () => {
       entryYear: 1404,
       major: "Computer Engineering",
       orientation: "Unified",
-      studyType: "Full-time",
+      studyType: "تمام‌وقت",
     });
-    await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByRole("button", { name: "ادامه" }).click();
     await expect(page).toHaveURL("/academic-setup");
 
     const user = await getUserByStudentNumber(studentNumber);
@@ -112,12 +112,12 @@ test.describe("academic profile creation", () => {
   test("shows a clear error when required fields are missing", async ({ page }) => {
     await registerStudent(page);
 
-    await page.getByLabel("Entry year").fill("1401");
+    await page.getByLabel("سال ورود").fill("1401");
     // Major auto-selects (only one option currently exists); leave
     // Orientation/Study type unselected to trigger required-field validation.
-    await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByRole("button", { name: "ادامه" }).click();
 
-    await expect(page.getByText("Orientation is required.")).toBeVisible();
+    await expect(page.getByText("گرایش الزامی است.")).toBeVisible();
     await expect(page).toHaveURL("/profile/setup");
   });
 
@@ -131,11 +131,11 @@ test.describe("academic profile creation", () => {
       entryYear: 1403,
       major: "Computer Engineering",
       orientation: "Software Engineering",
-      studyType: "Full-time",
+      studyType: "تمام‌وقت",
     });
-    await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByRole("button", { name: "ادامه" }).click();
 
-    await expect(page.getByText(/No curriculum matches the provided entry year/)).toBeVisible();
+    await expect(page.getByText(/هیچ برنامه تحصیلی مطابقتی پیدا نشد/)).toBeVisible();
     await expect(page).toHaveURL("/profile/setup");
   });
 
@@ -147,9 +147,9 @@ test.describe("academic profile creation", () => {
       entryYear: 1401,
       major: "Computer Engineering",
       orientation: "Software Engineering",
-      studyType: "Full-time",
+      studyType: "تمام‌وقت",
     });
-    await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByRole("button", { name: "ادامه" }).click();
     await expect(page).toHaveURL("/academic-setup");
 
     await page.goto("/profile/setup");
@@ -164,19 +164,19 @@ test.describe("academic profile updates", () => {
       entryYear: 1401,
       major: "Computer Engineering",
       orientation: "Software Engineering",
-      studyType: "Full-time",
+      studyType: "تمام‌وقت",
     });
-    await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByRole("button", { name: "ادامه" }).click();
     await completeAcademicSetup(page);
 
-    await page.getByRole("link", { name: "Manage academic profile" }).click();
+    await page.getByRole("link", { name: "مدیریت پروفایل تحصیلی" }).click();
     await expect(page).toHaveURL("/profile");
 
-    await selectOption(page, "Study type", "Part-time");
-    await page.getByRole("button", { name: "Save changes" }).click();
+    await selectOption(page, "نوع تحصیل", "پاره‌وقت");
+    await page.getByRole("button", { name: "ذخیره تغییرات" }).click();
 
-    await expect(page.getByText("Profile saved.")).toBeVisible();
-    await expect(page.getByText(/will reset your existing academic/)).not.toBeVisible();
+    await expect(page.getByText("پروفایل ذخیره شد.")).toBeVisible();
+    await expect(page.getByText(/باعث حذف داده‌های وضعیت دروس تحصیلی فعلی شما می‌شود/)).not.toBeVisible();
   });
 
   test("a curriculum-changing update requires explicit confirmation and can be cancelled", async ({
@@ -187,9 +187,9 @@ test.describe("academic profile updates", () => {
       entryYear: 1401,
       major: "Computer Engineering",
       orientation: "Software Engineering",
-      studyType: "Full-time",
+      studyType: "تمام‌وقت",
     });
-    await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByRole("button", { name: "ادامه" }).click();
     await completeAcademicSetup(page);
 
     await page.goto("/profile");
@@ -197,16 +197,16 @@ test.describe("academic profile updates", () => {
       entryYear: 1404,
       major: "Computer Engineering",
       orientation: "Unified",
-      studyType: "Full-time",
+      studyType: "تمام‌وقت",
     });
-    await page.getByRole("button", { name: "Save changes" }).click();
+    await page.getByRole("button", { name: "ذخیره تغییرات" }).click();
 
-    await expect(page.getByText(/will reset your existing academic course-status data/)).toBeVisible();
+    await expect(page.getByText(/باعث حذف داده‌های وضعیت دروس تحصیلی فعلی شما می‌شود/)).toBeVisible();
 
     // Cancel: nothing should be persisted.
-    await page.getByRole("button", { name: "Cancel" }).click();
+    await page.getByRole("button", { name: "انصراف" }).click();
     await expect(
-      page.getByText(/will reset your existing academic course-status data/),
+      page.getByText(/باعث حذف داده‌های وضعیت دروس تحصیلی فعلی شما می‌شود/),
     ).not.toBeVisible();
 
     const user = await getUserByStudentNumber(studentNumber);
@@ -226,9 +226,9 @@ test.describe("academic profile updates", () => {
       entryYear: 1401,
       major: "Computer Engineering",
       orientation: "Software Engineering",
-      studyType: "Full-time",
+      studyType: "تمام‌وقت",
     });
-    await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByRole("button", { name: "ادامه" }).click();
     await expect(page).toHaveURL("/academic-setup");
 
     const profileBefore = await getStudentProfileByUserId(userId);
@@ -240,13 +240,13 @@ test.describe("academic profile updates", () => {
       entryYear: 1404,
       major: "Computer Engineering",
       orientation: "Unified",
-      studyType: "Full-time",
+      studyType: "تمام‌وقت",
     });
-    await page.getByRole("button", { name: "Save changes" }).click();
-    await expect(page.getByText(/will reset your existing academic/)).toBeVisible();
+    await page.getByRole("button", { name: "ذخیره تغییرات" }).click();
+    await expect(page.getByText(/باعث حذف داده‌های وضعیت دروس تحصیلی فعلی شما می‌شود/)).toBeVisible();
 
-    await page.getByRole("button", { name: "Yes, reset and continue" }).click();
-    await expect(page.getByText("Profile saved.")).toBeVisible();
+    await page.getByRole("button", { name: "بله، بازنشانی و ادامه" }).click();
+    await expect(page.getByText("پروفایل ذخیره شد.")).toBeVisible();
 
     expect(await countStudentCourses(profileBefore.id)).toBe(0);
 
@@ -286,9 +286,9 @@ test.describe("access control", () => {
       entryYear: 1401,
       major: "Computer Engineering",
       orientation: "Software Engineering",
-      studyType: "Full-time",
+      studyType: "تمام‌وقت",
     });
-    await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByRole("button", { name: "ادامه" }).click();
     await completeAcademicSetup(page);
 
     const userA = await getUserByStudentNumber(studentA);
@@ -296,7 +296,7 @@ test.describe("access control", () => {
 
     // Log out, then register/onboard a completely separate Student B in the
     // same browser context and change B's profile to a different curriculum.
-    await page.getByRole("button", { name: "Log out" }).click();
+    await page.getByRole("button", { name: "خروج" }).click();
     await expect(page).toHaveURL("/login");
 
     await registerStudent(page);
@@ -304,9 +304,9 @@ test.describe("access control", () => {
       entryYear: 1404,
       major: "Computer Engineering",
       orientation: "Unified",
-      studyType: "Full-time",
+      studyType: "تمام‌وقت",
     });
-    await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByRole("button", { name: "ادامه" }).click();
     await completeAcademicSetup(page);
 
     // Student A's profile must be completely unaffected by Student B's action.

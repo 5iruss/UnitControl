@@ -42,8 +42,8 @@ export function CourseAttemptForm({ termCode, courses }: CourseAttemptFormProps)
       <input type="hidden" name="termCode" value={termCode} />
 
       <Select name="courseId">
-        <SelectTrigger className="w-64" aria-label={`Course for term ${termCode}`}>
-          <SelectValue placeholder="Select a course">
+        <SelectTrigger className="w-64" aria-label={`درس برای ترم ${termCode}`}>
+          <SelectValue placeholder="یک درس را انتخاب کنید">
             {(value: string) => courseNameById.get(value) ?? value}
           </SelectValue>
         </SelectTrigger>
@@ -57,8 +57,8 @@ export function CourseAttemptForm({ termCode, courses }: CourseAttemptFormProps)
       </Select>
 
       <Select name="result">
-        <SelectTrigger aria-label={`Result for term ${termCode}`}>
-          <SelectValue placeholder="Result">
+        <SelectTrigger aria-label={`نتیجه ترم ${termCode}`}>
+          <SelectValue placeholder="نتیجه">
             {(value: string) => RESULT_LABEL_BY_VALUE.get(value) ?? value}
           </SelectValue>
         </SelectTrigger>
@@ -71,8 +71,8 @@ export function CourseAttemptForm({ termCode, courses }: CourseAttemptFormProps)
         </SelectContent>
       </Select>
 
-      <Button type="submit" size="sm" aria-label={`Add result for term ${termCode}`} disabled={pending}>
-        {pending ? "Saving…" : "Add result"}
+      <Button type="submit" size="sm" aria-label={`افزودن نتیجه ترم ${termCode}`} disabled={pending}>
+        {pending ? "در حال ذخیره…" : "افزودن نتیجه"}
       </Button>
 
       {state.error && (

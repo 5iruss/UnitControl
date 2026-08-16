@@ -9,9 +9,9 @@ import type { TermTypeValue } from "@/domain/academic-status/types";
 import type { PlannedCourseInput, PlannedSemesterViewModel } from "./types";
 
 const TERM_TYPE_LABEL: Record<TermTypeValue, string> = {
-  MEHR: "Mehr",
-  BAHMAN: "Bahman",
-  SUMMER: "Summer",
+  MEHR: "مهر",
+  BAHMAN: "بهمن",
+  SUMMER: "تابستان",
 };
 
 function termLabel(termCode: string): string {

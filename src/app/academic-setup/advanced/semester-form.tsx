@@ -14,11 +14,11 @@ export function SemesterForm() {
   return (
     <form action={formAction} className="flex flex-wrap items-end gap-2">
       <div className="flex flex-col gap-1">
-        <Label htmlFor="termCode">Academic term code</Label>
+        <Label htmlFor="termCode">کد ترم تحصیلی</Label>
         <Input id="termCode" name="termCode" placeholder="4051" className="w-28" required dir="ltr" />
       </div>
       <div className="flex flex-col gap-1">
-        <Label htmlFor="semesterGpa">Semester GPA</Label>
+        <Label htmlFor="semesterGpa">معدل ترم</Label>
         <Input
           id="semesterGpa"
           name="semesterGpa"
@@ -26,10 +26,11 @@ export function SemesterForm() {
           step="0.01"
           className="w-28"
           required
+          dir="ltr"
         />
       </div>
       <Button type="submit" disabled={pending}>
-        {pending ? "Saving…" : "Add / update semester"}
+        {pending ? "در حال ذخیره…" : "افزودن / به‌روزرسانی ترم"}
       </Button>
       {state.error && (
         <p className="w-full text-sm text-destructive" role="alert">

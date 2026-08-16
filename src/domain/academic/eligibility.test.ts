@@ -24,7 +24,7 @@ describe("evaluateCourseEligibility — curriculum membership", () => {
     const result = evaluateCourseEligibility(state, "course-outside");
     expect(result.allowed).toBe(false);
     expect(result.status).toBe("BLOCKED");
-    expect(result.reasons[0]).toContain("not part of the student's curriculum");
+    expect(result.reasons[0]).toContain("در برنامه تحصیلی شما وجود ندارد");
   });
 });
 
@@ -36,7 +36,7 @@ describe("evaluateCourseEligibility — course status", () => {
     const result = evaluateCourseEligibility(state, "course-a");
     expect(result.allowed).toBe(false);
     expect(result.status).toBe("BLOCKED");
-    expect(result.reasons[0]).toContain("already been passed");
+    expect(result.reasons[0]).toContain("قبلاً گذرانده شده");
   });
 
   it("is AVAILABLE for a course with no prior status at all (NOT_COMPLETED default) and no relationships", () => {
@@ -74,7 +74,7 @@ describe("evaluateCourseEligibility — prerequisites", () => {
     const result = evaluateCourseEligibility(state, "course-b");
     expect(result.allowed).toBe(false);
     expect(result.status).toBe("BLOCKED");
-    expect(result.reasons[0]).toBe("Prerequisite has not been previously attempted.");
+    expect(result.reasons[0]).toBe("پیش‌نیاز این درس تاکنون اخذ نشده است.");
   });
 
   it("blocks when the prerequisite is only planned", () => {
@@ -135,7 +135,7 @@ describe("evaluateCourseEligibility — prerequisites", () => {
     // Exactly one reason: course-a (PASSED) is satisfied and contributes
     // nothing; only the unmet course-c prerequisite blocks.
     expect(result.reasons).toHaveLength(1);
-    expect(result.reasons[0]).toBe("Prerequisite has not been previously attempted.");
+    expect(result.reasons[0]).toBe("پیش‌نیاز این درس تاکنون اخذ نشده است.");
   });
 
   it("allows when all of multiple prerequisites are satisfied", () => {
@@ -168,7 +168,7 @@ describe("evaluateCourseEligibility — corequisites", () => {
     const result = evaluateCourseEligibility(state, "course-a");
     expect(result.allowed).toBe(true);
     expect(result.status).toBe("AVAILABLE_WITH_WARNING");
-    expect(result.warnings.some((w) => w.includes("unverified"))).toBe(true);
+    expect(result.warnings.some((w) => w.includes("تأیید نشده"))).toBe(true);
   });
 });
 
@@ -189,7 +189,7 @@ describe("evaluateCourseEligibility — own failed-course risk", () => {
     const result = evaluateCourseEligibility(state, "course-a");
     expect(result.allowed).toBe(true);
     expect(result.status).toBe("AVAILABLE_WITH_WARNING");
-    expect(result.warnings.some((w) => w.includes("no academic term is recorded"))).toBe(true);
+    expect(result.warnings.some((w) => w.includes("ترمی برای این تلاش ثبت نشده است"))).toBe(true);
   });
 });
 

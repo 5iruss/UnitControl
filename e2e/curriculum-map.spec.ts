@@ -17,7 +17,7 @@ const UNIFIED_PROFILE = {
   entryYear: 1404,
   major: "Computer Engineering",
   orientation: "Unified",
-  studyType: "Full-time",
+  studyType: "تمام‌وقت",
 };
 
 function randomPhoneNumber(): string {
@@ -26,17 +26,17 @@ function randomPhoneNumber(): string {
 
 async function selectOption(page: Page, triggerLabel: string, optionText: string) {
   await page.getByLabel(triggerLabel, { exact: true }).click();
-  await page.getByRole("option", { name: optionText }).click();
+  await page.getByRole("option", { name: optionText, exact: true }).click();
 }
 
 async function fillProfileForm(
   page: Page,
   values: { entryYear: number; major: string; orientation: string; studyType: string },
 ) {
-  await page.getByLabel("Entry year").fill(String(values.entryYear));
-  await selectOption(page, "Major", values.major);
-  await selectOption(page, "Orientation", values.orientation);
-  await selectOption(page, "Study type", values.studyType);
+  await page.getByLabel("سال ورود").fill(String(values.entryYear));
+  await selectOption(page, "رشته", values.major);
+  await selectOption(page, "گرایش", values.orientation);
+  await selectOption(page, "نوع تحصیل", values.studyType);
 }
 
 async function registerAndReachDashboard(
@@ -45,21 +45,21 @@ async function registerAndReachDashboard(
 ): Promise<{ studentNumber: string }> {
   const studentNumber = uniqueId("e2e-map");
   await page.goto("/register");
-  await page.getByLabel("Student number").fill(studentNumber);
-  await page.getByLabel("Password").fill("CorrectPass123!");
-  await page.getByLabel("First name").fill("Sara");
-  await page.getByLabel("Last name").fill("Ahmadi");
-  await page.getByLabel("Phone number").fill(randomPhoneNumber());
-  await page.getByRole("button", { name: "Create account" }).click();
+  await page.getByLabel("شماره دانشجویی").fill(studentNumber);
+  await page.getByLabel("رمز عبور").fill("CorrectPass123!");
+  await page.getByLabel("نام", { exact: true }).fill("Sara");
+  await page.getByLabel("نام خانوادگی").fill("Ahmadi");
+  await page.getByLabel("شماره تلفن").fill(randomPhoneNumber());
+  await page.getByRole("button", { name: "ساخت حساب" }).click();
   await expect(page).toHaveURL("/profile/setup");
 
   await fillProfileForm(page, profileValues);
-  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "ادامه" }).click();
   await expect(page).toHaveURL("/academic-setup");
 
-  await page.getByRole("link", { name: "Start Simple Mode" }).click();
+  await page.getByRole("link", { name: "شروع حالت ساده" }).click();
   await expect(page).toHaveURL("/academic-status");
-  await page.getByRole("button", { name: "Continue to dashboard" }).click();
+  await page.getByRole("button", { name: "ادامه به داشبورد" }).click();
   await expect(page).toHaveURL("/dashboard");
 
   return { studentNumber };
@@ -91,7 +91,7 @@ test.describe("access", () => {
     const seCourse = await getCourseInCurriculum(SE_CURRICULUM_NAME);
     await registerAndReachDashboard(page, UNIFIED_PROFILE);
 
-    await expect(page.getByText("Curriculum: " + UNIFIED_CURRICULUM_NAME)).toBeVisible();
+    await expect(page.getByText(UNIFIED_CURRICULUM_NAME, { exact: true })).toBeVisible();
     await expect(courseButton(page, seCourse)).not.toBeVisible();
   });
 });
@@ -116,7 +116,7 @@ test.describe("status and eligibility", () => {
     await registerAndReachDashboard(page);
 
     await courseButton(page, course).click();
-    await expect(page.getByRole("dialog").getByText("Available", { exact: true })).toBeVisible();
+    await expect(page.getByRole("dialog").getByText("قابل انتخاب", { exact: true })).toBeVisible();
   });
 
   test("marking a course passed shows it as Passed and then Blocked (already passed) on reopen", async ({
@@ -126,15 +126,15 @@ test.describe("status and eligibility", () => {
     const { studentNumber } = await registerAndReachDashboard(page);
 
     await courseButton(page, course).click();
-    await selectOption(page, "Status", "Passed");
-    await page.getByRole("button", { name: "Save status" }).click();
+    await selectOption(page, "وضعیت", "گذرانده");
+    await page.getByRole("button", { name: "ذخیره وضعیت" }).click();
     await expect(page.getByRole("dialog")).not.toBeVisible();
 
-    await expect(courseButton(page, course)).toContainText("Passed");
+    await expect(courseButton(page, course)).toContainText("گذرانده");
 
     await courseButton(page, course).click();
-    await expect(page.getByRole("dialog").getByText("Blocked", { exact: true })).toBeVisible();
-    await expect(page.getByRole("dialog").getByText("Course has already been passed.")).toBeVisible();
+    await expect(page.getByRole("dialog").getByText("غیرقابل انتخاب", { exact: true })).toBeVisible();
+    await expect(page.getByRole("dialog").getByText("این درس قبلاً گذرانده شده است.")).toBeVisible();
 
     const user = await getUserByStudentNumber(studentNumber);
     const profile = await getStudentProfileByUserId(user.id);
@@ -149,13 +149,13 @@ test.describe("status and eligibility", () => {
     await registerAndReachDashboard(page);
 
     await courseButton(page, course).click();
-    await selectOption(page, "Status", "Failed");
-    await page.getByRole("button", { name: "Save status" }).click();
+    await selectOption(page, "وضعیت", "مردود");
+    await page.getByRole("button", { name: "ذخیره وضعیت" }).click();
     await expect(page.getByRole("dialog")).not.toBeVisible();
 
     await courseButton(page, course).click();
-    await expect(page.getByRole("dialog").getByText("Available with warning", { exact: true })).toBeVisible();
-    await expect(page.getByRole("dialog").getByText("no academic term is recorded")).toBeVisible();
+    await expect(page.getByRole("dialog").getByText("قابل انتخاب با هشدار", { exact: true })).toBeVisible();
+    await expect(page.getByRole("dialog").getByText("ترمی برای این تلاش ثبت نشده است")).toBeVisible();
   });
 
   test("the status toolbar pre-fills the detail dialog rather than applying instantly", async ({
@@ -164,15 +164,15 @@ test.describe("status and eligibility", () => {
     const course = await getCourseInCurriculum(UNIFIED_CURRICULUM_NAME);
     await registerAndReachDashboard(page);
 
-    await page.getByRole("button", { name: "Apply status: Currently studying", exact: true }).click();
+    await page.getByRole("button", { name: "اعمال وضعیت: در حال تحصیل", exact: true }).click();
     await courseButton(page, course).click();
 
     // Preset into the dialog's status field, not applied yet — the toolbar
     // never mutates data on the click that opens the dialog.
-    await expect(page.getByLabel("Status", { exact: true })).toContainText("Currently studying");
-    await page.getByRole("button", { name: "Save status" }).click();
+    await expect(page.getByLabel("وضعیت", { exact: true })).toContainText("در حال تحصیل");
+    await page.getByRole("button", { name: "ذخیره وضعیت" }).click();
     await expect(page.getByRole("dialog")).not.toBeVisible();
-    await expect(courseButton(page, course)).toContainText("Currently studying");
+    await expect(courseButton(page, course)).toContainText("در حال تحصیل");
   });
 });
 
@@ -183,7 +183,7 @@ test.describe("filters", () => {
     const course = await getCourseInCurriculum(UNIFIED_CURRICULUM_NAME);
     const { studentNumber } = await registerAndReachDashboard(page);
 
-    const filterButton = page.getByRole("button", { name: "Passed", exact: true });
+    const filterButton = page.getByRole("button", { name: "گذرانده", exact: true });
     await expect(filterButton).toHaveAttribute("aria-pressed", "false");
     await filterButton.click();
     await expect(filterButton).toHaveAttribute("aria-pressed", "true");
@@ -213,7 +213,7 @@ test.describe("relationships", () => {
       await expect(page.locator(".react-flow__edge")).toHaveCount(1);
 
       await courseButton(page, courseB).click();
-      await expect(page.getByRole("dialog").getByText(`Requires prerequisite: ${courseA.name}`)).toBeVisible();
+      await expect(page.getByRole("dialog").getByText(`نیازمند پیش‌نیاز: ${courseA.name}`)).toBeVisible();
     } finally {
       await deleteCourseRelationship(relationship.id);
     }
@@ -226,15 +226,15 @@ test.describe("security", () => {
 
     await registerAndReachDashboard(page);
     await courseButton(page, course).click();
-    await selectOption(page, "Status", "Passed");
-    await page.getByRole("button", { name: "Save status" }).click();
+    await selectOption(page, "وضعیت", "گذرانده");
+    await page.getByRole("button", { name: "ذخیره وضعیت" }).click();
     await expect(page.getByRole("dialog")).not.toBeVisible();
 
-    await page.getByRole("button", { name: "Log out" }).click();
+    await page.getByRole("button", { name: "خروج" }).click();
     await expect(page).toHaveURL("/login");
 
     await registerAndReachDashboard(page);
     // A fresh student must see the same course as NOT_COMPLETED, not PASSED.
-    await expect(courseButton(page, course)).toContainText("Not completed");
+    await expect(courseButton(page, course)).toContainText("گذرانده نشده");
   });
 });

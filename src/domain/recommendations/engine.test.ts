@@ -37,7 +37,7 @@ describe("buildCourseRecommendations", () => {
     const result = buildCourseRecommendations([candidate({})]);
     expect(result).toHaveLength(1);
     expect(result[0].reasons).toEqual([
-      "No prerequisite or corequisite restriction currently blocks this course.",
+      "هیچ محدودیت پیش‌نیاز یا هم‌نیازی این درس را مسدود نکرده است.",
     ]);
   });
 
@@ -119,7 +119,7 @@ describe("buildFailedCourseWarnings", () => {
       [],
     );
     expect(result).toHaveLength(1);
-    expect(result[0].warning.reason).toContain("no academic term is recorded");
+    expect(result[0].warning.reason).toContain("ترمی برای این تلاش ثبت نشده است");
   });
 
   it("does not warn for a non-FAILED course", () => {

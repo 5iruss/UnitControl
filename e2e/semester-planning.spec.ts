@@ -17,7 +17,7 @@ const UNIFIED_PROFILE = {
   entryYear: 1404,
   major: "Computer Engineering",
   orientation: "Unified",
-  studyType: "Full-time",
+  studyType: "تمام‌وقت",
 };
 
 function randomPhoneNumber(): string {
@@ -26,17 +26,17 @@ function randomPhoneNumber(): string {
 
 async function selectOption(page: Page, triggerLabel: string, optionText: string) {
   await page.getByLabel(triggerLabel, { exact: true }).click();
-  await page.getByRole("option", { name: optionText }).click();
+  await page.getByRole("option", { name: optionText, exact: true }).click();
 }
 
 async function fillProfileForm(
   page: Page,
   values: { entryYear: number; major: string; orientation: string; studyType: string },
 ) {
-  await page.getByLabel("Entry year").fill(String(values.entryYear));
-  await selectOption(page, "Major", values.major);
-  await selectOption(page, "Orientation", values.orientation);
-  await selectOption(page, "Study type", values.studyType);
+  await page.getByLabel("سال ورود").fill(String(values.entryYear));
+  await selectOption(page, "رشته", values.major);
+  await selectOption(page, "گرایش", values.orientation);
+  await selectOption(page, "نوع تحصیل", values.studyType);
 }
 
 async function registerAndReachDashboard(
@@ -45,30 +45,30 @@ async function registerAndReachDashboard(
 ): Promise<{ studentNumber: string }> {
   const studentNumber = uniqueId("e2e-plan");
   await page.goto("/register");
-  await page.getByLabel("Student number").fill(studentNumber);
-  await page.getByLabel("Password").fill("CorrectPass123!");
-  await page.getByLabel("First name").fill("Sara");
-  await page.getByLabel("Last name").fill("Ahmadi");
-  await page.getByLabel("Phone number").fill(randomPhoneNumber());
-  await page.getByRole("button", { name: "Create account" }).click();
+  await page.getByLabel("شماره دانشجویی").fill(studentNumber);
+  await page.getByLabel("رمز عبور").fill("CorrectPass123!");
+  await page.getByLabel("نام", { exact: true }).fill("Sara");
+  await page.getByLabel("نام خانوادگی").fill("Ahmadi");
+  await page.getByLabel("شماره تلفن").fill(randomPhoneNumber());
+  await page.getByRole("button", { name: "ساخت حساب" }).click();
   await expect(page).toHaveURL("/profile/setup");
 
   await fillProfileForm(page, profileValues);
-  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "ادامه" }).click();
   await expect(page).toHaveURL("/academic-setup");
 
-  await page.getByRole("link", { name: "Start Simple Mode" }).click();
+  await page.getByRole("link", { name: "شروع حالت ساده" }).click();
   await expect(page).toHaveURL("/academic-status");
-  await page.getByRole("button", { name: "Continue to dashboard" }).click();
+  await page.getByRole("button", { name: "ادامه به داشبورد" }).click();
   await expect(page).toHaveURL("/dashboard");
 
   return { studentNumber };
 }
 
 async function addToPlan(page: Page, courseName: string, termCode: string) {
-  await selectOption(page, "Course to plan", courseName);
-  await page.getByLabel("Intended term", { exact: true }).fill(termCode);
-  await page.getByRole("button", { name: "Add to plan" }).click();
+  await selectOption(page, "درس مورد نظر برای برنامه‌ریزی", courseName);
+  await page.getByLabel("ترم مدنظر", { exact: true }).fill(termCode);
+  await page.getByRole("button", { name: "افزودن به برنامه" }).click();
 }
 
 function semesterHeading(page: Page, termLabel: string) {
@@ -91,8 +91,8 @@ test.describe("semester", () => {
     await registerAndReachDashboard(page);
 
     await addToPlan(page, course.name, "4051");
-    await expect(semesterHeading(page, "Mehr 1405")).toBeVisible();
-    await expect(page.getByText("1 course", { exact: true })).toBeVisible();
+    await expect(semesterHeading(page, "مهر 1405")).toBeVisible();
+    await expect(page.getByText("1 درس", { exact: true })).toBeVisible();
   });
 
   test("groups multiple courses planned into the same term under one semester", async ({ page }) => {
@@ -103,8 +103,8 @@ test.describe("semester", () => {
     await addToPlan(page, courseA.name, "4051");
     await addToPlan(page, courseB.name, "4051");
 
-    await expect(page.getByRole("heading", { name: "Mehr 1405" })).toHaveCount(1);
-    await expect(page.getByText("2 courses", { exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "مهر 1405" })).toHaveCount(1);
+    await expect(page.getByText("2 درس", { exact: true })).toBeVisible();
   });
 
   test("orders semesters chronologically, not by insertion order", async ({ page }) => {
@@ -116,22 +116,22 @@ test.describe("semester", () => {
     await addToPlan(page, courseA.name, "4053");
     await addToPlan(page, courseB.name, "4051");
 
-    const headings = page.getByRole("heading", { name: /Mehr 1405|Summer 1405/ });
+    const headings = page.getByRole("heading", { name: /مهر 1405|تابستان 1405/ });
     await expect(headings).toHaveCount(2);
-    await expect(headings.first()).toContainText("Mehr 1405");
-    await expect(headings.last()).toContainText("Summer 1405");
+    await expect(headings.first()).toContainText("مهر 1405");
+    await expect(headings.last()).toContainText("تابستان 1405");
   });
 
   test("rejects an invalid term code and does not create a semester", async ({ page }) => {
     const course = await getCourseInCurriculum(UNIFIED_CURRICULUM_NAME);
     await registerAndReachDashboard(page);
 
-    await selectOption(page, "Course to plan", course.name);
-    await page.getByLabel("Intended term", { exact: true }).fill("not-a-term");
-    await page.getByRole("button", { name: "Add to plan" }).click();
+    await selectOption(page, "درس مورد نظر برای برنامه‌ریزی", course.name);
+    await page.getByLabel("ترم مدنظر", { exact: true }).fill("not-a-term");
+    await page.getByRole("button", { name: "افزودن به برنامه" }).click();
 
-    await expect(page.getByText("Enter a valid academic term code")).toBeVisible();
-    await expect(page.getByText("No courses planned yet.")).toBeVisible();
+    await expect(page.getByText("کد ترم معتبر وارد کنید")).toBeVisible();
+    await expect(page.getByText("هنوز درسی برنامه‌ریزی نشده است.")).toBeVisible();
   });
 });
 
@@ -141,7 +141,7 @@ test.describe("planning", () => {
     const { studentNumber } = await registerAndReachDashboard(page);
 
     await addToPlan(page, course.name, "4051");
-    await expect(semesterHeading(page, "Mehr 1405")).toBeVisible();
+    await expect(semesterHeading(page, "مهر 1405")).toBeVisible();
 
     const user = await getUserByStudentNumber(studentNumber);
     const profile = await getStudentProfileByUserId(user.id);
@@ -161,17 +161,17 @@ test.describe("planning", () => {
       await addToPlan(page, courseB.name, "4051");
 
       // Allowed (added), not blocked — the semester group must exist.
-      await expect(semesterHeading(page, "Mehr 1405")).toBeVisible();
+      await expect(semesterHeading(page, "مهر 1405")).toBeVisible();
       // Scoped to the "Planned semesters" section itself: Phase 9 also
       // surfaces this same Rules Engine warning elsewhere (the
       // recommendations/warnings panel), which is expected — this assertion
       // only cares that the planner row shows it.
       const plannedSemestersCard = page
-        .getByText("Planned semesters", { exact: true })
+        .getByText("برنامه ترم‌ها", { exact: true })
         .locator("..")
         .locator("..");
       await expect(
-        plannedSemestersCard.locator("li", { hasText: courseB.name }).getByText("unverified"),
+        plannedSemestersCard.locator("li", { hasText: courseB.name }).getByText("تأیید نشده"),
       ).toBeVisible();
     } finally {
       await deleteCourseRelationship(relationship.id);
@@ -187,8 +187,8 @@ test.describe("planning", () => {
       await registerAndReachDashboard(page);
       await addToPlan(page, courseB.name, "4051");
 
-      await expect(page.getByText("Prerequisite has not been previously attempted.")).toBeVisible();
-      await expect(page.getByText("No courses planned yet.")).toBeVisible();
+      await expect(page.getByText("پیش‌نیاز این درس تاکنون اخذ نشده است.")).toBeVisible();
+      await expect(page.getByText("هنوز درسی برنامه‌ریزی نشده است.")).toBeVisible();
     } finally {
       await deleteCourseRelationship(relationship.id);
     }
@@ -201,11 +201,11 @@ test.describe("planning", () => {
     const { studentNumber } = await registerAndReachDashboard(page);
 
     await addToPlan(page, course.name, "4051");
-    await expect(semesterHeading(page, "Mehr 1405")).toBeVisible();
+    await expect(semesterHeading(page, "مهر 1405")).toBeVisible();
 
-    await page.getByRole("button", { name: `Remove ${course.name} from plan` }).click();
-    await expect(semesterHeading(page, "Mehr 1405")).not.toBeVisible();
-    await expect(page.getByText("No courses planned yet.")).toBeVisible();
+    await page.getByRole("button", { name: `حذف ${course.name} از برنامه` }).click();
+    await expect(semesterHeading(page, "مهر 1405")).not.toBeVisible();
+    await expect(page.getByText("هنوز درسی برنامه‌ریزی نشده است.")).toBeVisible();
 
     const user = await getUserByStudentNumber(studentNumber);
     const profile = await getStudentProfileByUserId(user.id);
@@ -218,14 +218,14 @@ test.describe("planning", () => {
     const { studentNumber } = await registerAndReachDashboard(page);
 
     await addToPlan(page, course.name, "4051");
-    await expect(semesterHeading(page, "Mehr 1405")).toBeVisible();
+    await expect(semesterHeading(page, "مهر 1405")).toBeVisible();
 
-    await page.getByRole("button", { name: "Move", exact: true }).click();
-    await page.getByLabel(`New intended term for ${course.name}`).fill("4052");
-    await page.getByRole("button", { name: "Save new term" }).click();
+    await page.getByRole("button", { name: "جابه‌جایی", exact: true }).click();
+    await page.getByLabel(`ترم جدید برای ${course.name}`).fill("4052");
+    await page.getByRole("button", { name: "ذخیره ترم جدید" }).click();
 
-    await expect(semesterHeading(page, "Mehr 1405")).not.toBeVisible();
-    await expect(semesterHeading(page, "Bahman 1405")).toBeVisible();
+    await expect(semesterHeading(page, "مهر 1405")).not.toBeVisible();
+    await expect(semesterHeading(page, "بهمن 1405")).toBeVisible();
 
     const user = await getUserByStudentNumber(studentNumber);
     const profile = await getStudentProfileByUserId(user.id);
@@ -240,8 +240,8 @@ test.describe("planning", () => {
     await addToPlan(page, course.name, "4051");
     await addToPlan(page, course.name, "4052");
 
-    await expect(semesterHeading(page, "Mehr 1405")).not.toBeVisible();
-    await expect(semesterHeading(page, "Bahman 1405")).toBeVisible();
+    await expect(semesterHeading(page, "مهر 1405")).not.toBeVisible();
+    await expect(semesterHeading(page, "بهمن 1405")).toBeVisible();
     await expect(page.locator("li", { hasText: course.name })).toHaveCount(1);
 
     const user = await getUserByStudentNumber(studentNumber);
@@ -257,12 +257,12 @@ test.describe("academic integrity", () => {
 
     // Mark it passed via the curriculum map first.
     await mapCourseButton(page, course).click();
-    await selectOption(page, "Status", "Passed");
-    await page.getByRole("button", { name: "Save status" }).click();
+    await selectOption(page, "وضعیت", "گذرانده");
+    await page.getByRole("button", { name: "ذخیره وضعیت" }).click();
     await expect(page.getByRole("dialog")).not.toBeVisible();
 
     // Passed courses are excluded from the "add to plan" picker entirely.
-    await page.getByLabel("Course to plan", { exact: true }).click();
+    await page.getByLabel("درس مورد نظر برای برنامه‌ریزی", { exact: true }).click();
     await expect(page.getByRole("option", { name: course.name })).not.toBeVisible();
     await page.keyboard.press("Escape");
 
@@ -278,15 +278,15 @@ test.describe("academic integrity", () => {
 
     // Record a semester GPA via Advanced Mode.
     await page.goto("/academic-setup/advanced");
-    await page.getByLabel("Academic term code").fill("4053");
-    await page.getByLabel("Semester GPA").fill("17.5");
-    await page.getByRole("button", { name: "Add / update semester" }).click();
-    await expect(page.getByText("Semester 4053 saved.")).toBeVisible();
+    await page.getByLabel("کد ترم تحصیلی").fill("4053");
+    await page.getByLabel("معدل ترم").fill("17.5");
+    await page.getByRole("button", { name: "افزودن / به‌روزرسانی ترم" }).click();
+    await expect(page.getByText("ترم 4053 ذخیره شد.")).toBeVisible();
 
     // Now do planning actions unrelated to that term.
     await page.goto("/dashboard");
     await addToPlan(page, planCourse.name, "4051");
-    await expect(semesterHeading(page, "Mehr 1405")).toBeVisible();
+    await expect(semesterHeading(page, "مهر 1405")).toBeVisible();
 
     const user = await getUserByStudentNumber(studentNumber);
     const profile = await getStudentProfileByUserId(user.id);
@@ -303,9 +303,9 @@ test.describe("map integration", () => {
     await registerAndReachDashboard(page);
 
     await addToPlan(page, course.name, "4051");
-    await expect(semesterHeading(page, "Mehr 1405")).toBeVisible();
+    await expect(semesterHeading(page, "مهر 1405")).toBeVisible();
 
-    await expect(mapCourseButton(page, course)).toContainText("Planned");
+    await expect(mapCourseButton(page, course)).toContainText("برنامه‌ریزی‌شده");
   });
 });
 
@@ -315,13 +315,13 @@ test.describe("security", () => {
 
     await registerAndReachDashboard(page);
     await addToPlan(page, course.name, "4051");
-    await expect(semesterHeading(page, "Mehr 1405")).toBeVisible();
+    await expect(semesterHeading(page, "مهر 1405")).toBeVisible();
 
-    await page.getByRole("button", { name: "Log out" }).click();
+    await page.getByRole("button", { name: "خروج" }).click();
     await expect(page).toHaveURL("/login");
 
     await registerAndReachDashboard(page);
-    await expect(page.getByText("No courses planned yet.")).toBeVisible();
-    await expect(semesterHeading(page, "Mehr 1405")).not.toBeVisible();
+    await expect(page.getByText("هنوز درسی برنامه‌ریزی نشده است.")).toBeVisible();
+    await expect(semesterHeading(page, "مهر 1405")).not.toBeVisible();
   });
 });

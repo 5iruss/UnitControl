@@ -16,32 +16,32 @@ export default async function AcademicSetupPage() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-2xl flex-col items-center justify-center gap-4 p-4">
-      <h1 className="text-xl font-semibold">Set up your academic history</h1>
+      <h1 className="text-xl font-semibold">تنظیم سوابق تحصیلی</h1>
 
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>Simple Mode</CardTitle>
+          <CardTitle>حالت ساده</CardTitle>
           <CardDescription>
-            Quickly mark your current course statuses. No semester history or GPA required.
+            وضعیت فعلی دروس خود را به‌سرعت مشخص کنید. نیازی به سابقه ترمی یا معدل نیست.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Link href="/academic-status" className={buttonVariants()}>
-            Start Simple Mode
+            شروع حالت ساده
           </Link>
         </CardContent>
       </Card>
 
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>Advanced Mode</CardTitle>
+          <CardTitle>حالت پیشرفته</CardTitle>
           <CardDescription>
-            Enter your academic history semester by semester, including semester GPA.
+            سوابق تحصیلی خود را ترم به ترم، همراه با معدل هر ترم، وارد کنید.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Link href="/academic-setup/advanced" className={buttonVariants({ variant: "outline" })}>
-            Start Advanced Mode
+            شروع حالت پیشرفته
           </Link>
         </CardContent>
       </Card>

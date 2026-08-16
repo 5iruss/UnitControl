@@ -178,7 +178,7 @@ export function CurriculumMapView({ viewModel }: CurriculumMapViewProps) {
           edge.relationshipType === "COREQUISITE"
             ? { strokeDasharray: "6 4" }
             : undefined,
-        label: edge.relationshipType === "COREQUISITE" ? "corequisite" : undefined,
+        label: edge.relationshipType === "COREQUISITE" ? "هم‌نیاز" : undefined,
       })),
     [viewModel.edges],
   );
@@ -188,7 +188,7 @@ export function CurriculumMapView({ viewModel }: CurriculumMapViewProps) {
   if (viewModel.nodes.length === 0) {
     return (
       <div className="flex h-64 items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
-        This curriculum has no courses configured yet.
+        هنوز درسی برای این برنامه تحصیلی تعریف نشده است.
       </div>
     );
   }
@@ -196,7 +196,7 @@ export function CurriculumMapView({ viewModel }: CurriculumMapViewProps) {
   return (
     <div className="flex flex-col gap-3" dir="rtl">
       <div className="flex flex-col gap-1.5">
-        <p className="text-xs font-medium text-muted-foreground">Filters</p>
+        <p className="text-xs font-medium text-muted-foreground">فیلترها</p>
         <div className="flex flex-wrap gap-1.5">
           {STATUS_FILTER_OPTIONS.map((option) => (
             <Button
@@ -229,7 +229,7 @@ export function CurriculumMapView({ viewModel }: CurriculumMapViewProps) {
 
       <div className="flex flex-col gap-1.5">
         <p className="text-xs font-medium text-muted-foreground">
-          Status toolbar — select a status, then click a course to apply it
+          نوار وضعیت — یک وضعیت را انتخاب کنید، سپس روی درس مورد نظر در نقشه کلیک کنید
         </p>
         <div className="flex flex-wrap gap-1.5">
           {TOOLBAR_STATUS_OPTIONS.map((option) => (
@@ -239,7 +239,7 @@ export function CurriculumMapView({ viewModel }: CurriculumMapViewProps) {
               size="sm"
               variant={armedStatus === option.value ? "default" : "outline"}
               aria-pressed={armedStatus === option.value}
-              aria-label={`Apply status: ${option.label}`}
+              aria-label={`اعمال وضعیت: ${option.label}`}
               onClick={() => toggleArmedStatus(option.value)}
             >
               <option.icon aria-hidden />
@@ -249,8 +249,8 @@ export function CurriculumMapView({ viewModel }: CurriculumMapViewProps) {
         </div>
         {armedStatus && (
           <p className="text-xs text-muted-foreground">
-            Selected: {TOOLBAR_STATUS_OPTIONS.find((o) => o.value === armedStatus)?.label}. Click a
-            course on the map to apply it.
+            انتخاب‌شده: {TOOLBAR_STATUS_OPTIONS.find((o) => o.value === armedStatus)?.label}. برای
+            اعمال آن روی یک درس در نقشه کلیک کنید.
           </p>
         )}
       </div>

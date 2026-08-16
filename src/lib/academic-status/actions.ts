@@ -67,7 +67,7 @@ export async function setCourseStatusAction(
 
   const curriculumCourseIds = await getCurriculumCourseIds(profile.curriculumId);
   if (!isCourseInCurriculum(courseId, curriculumCourseIds)) {
-    return { error: "That course is not part of your curriculum." };
+    return { error: "این درس در برنامه تحصیلی شما وجود ندارد." };
   }
 
   let academicTermId: string | null = null;
@@ -75,11 +75,11 @@ export async function setCourseStatusAction(
   // docs/05_Curriculum_Data_Model.md §14.1 — PLANNED requires an intended term.
   if (status === "PLANNED") {
     if (!plannedTermCode) {
-      return { error: "Select an intended academic term for a planned course." };
+      return { error: "برای درس برنامه‌ریزی‌شده، ترم مدنظر را انتخاب کنید." };
     }
     const parsedTerm = parseTermCode(plannedTermCode);
     if (!parsedTerm) {
-      return { error: "Enter a valid academic term code (e.g. 4051)." };
+      return { error: "کد ترم معتبر وارد کنید (مثلاً 4051)." };
     }
 
     // docs/02_User_Flow.md §8, §11 — planning a course requires Rules Engine
@@ -107,7 +107,7 @@ export async function setCourseStatusAction(
   // No refresh() here: this row already reflects its own status locally
   // (CourseStatusRow's controlled Select), and unlike Advanced Mode it never
   // adds new elements to the page that only a fresh server render can reveal.
-  return { success: "Course status updated.", warnings };
+  return { success: "وضعیت درس به‌روزرسانی شد.", warnings };
 }
 
 // docs/02_User_Flow.md §12 — Advanced Mode semester GPA entry.
@@ -135,7 +135,7 @@ export async function saveSemesterAction(
   });
 
   refresh();
-  return { success: `Semester ${term.termCode} saved.` };
+  return { success: `ترم ${term.termCode} ذخیره شد.` };
 }
 
 // docs/02_User_Flow.md §5 — Advanced Mode: mark a course's result for a
@@ -155,7 +155,7 @@ export async function recordCourseAttemptAction(
 
   const curriculumCourseIds = await getCurriculumCourseIds(profile.curriculumId);
   if (!isCourseInCurriculum(courseId, curriculumCourseIds)) {
-    return { error: "That course is not part of your curriculum." };
+    return { error: "این درس در برنامه تحصیلی شما وجود ندارد." };
   }
 
   const term = await upsertAcademicTerm(parsed.data.termCode);
@@ -181,7 +181,7 @@ export async function recordCourseAttemptAction(
   ]);
 
   refresh();
-  return { success: "Course result recorded." };
+  return { success: "نتیجه درس ثبت شد." };
 }
 
 // docs/02_User_Flow.md §5 — "Enter Dashboard" step ending both Simple and

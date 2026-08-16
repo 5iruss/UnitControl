@@ -39,8 +39,8 @@ export async function registerAction(
     return {
       error:
         existing.studentNumber === studentNumber
-          ? "An account with this student number already exists."
-          : "An account with this phone number already exists.",
+          ? "حسابی با این شماره دانشجویی قبلاً ثبت شده است."
+          : "حسابی با این شماره تلفن قبلاً ثبت شده است.",
     };
   }
 
@@ -61,7 +61,7 @@ export async function registerAction(
     // A concurrent registration with the same identifier can slip past the
     // pre-check above; the unique constraint is the real guard.
     if (isUniqueConstraintError(err)) {
-      return { error: "An account with this student number or phone number already exists." };
+      return { error: "حسابی با این شماره دانشجویی یا شماره تلفن قبلاً ثبت شده است." };
     }
     throw err;
   }
@@ -103,10 +103,10 @@ export async function studentLoginAction(
 
   const user = await authenticate(parsed.data.identifier, parsed.data.password);
   if (!user) {
-    return { error: "Incorrect credentials." };
+    return { error: "نام کاربری یا رمز عبور اشتباه است." };
   }
   if (user.role !== "STUDENT") {
-    return { error: "This is not a student account. Use the administrative login." };
+    return { error: "این حساب دانشجویی نیست. از ورود مدیریتی استفاده کنید." };
   }
 
   await createSession(user.id);

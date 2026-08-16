@@ -26,6 +26,10 @@ async function loginAsAdmin(
 
 async function selectOption(page: Page, triggerLabel: string, optionText: string) {
   await page.getByLabel(triggerLabel, { exact: true }).click();
+  // Not exact: several admin dropdowns render "name (code)" while callers
+  // pass just the name (course pickers) — unlike the student status dropdown
+  // (student specs' selectOption), the Admin Panel never renders the
+  // گذرانده/گذرانده نشده pair that motivated exact matching there.
   await page.getByRole("option", { name: optionText }).click();
 }
 
@@ -110,9 +114,9 @@ test.describe("role-based access", () => {
   test("a student cannot reach the admin area at all", async ({ page }) => {
     const { studentNumber, password } = await seedStudent();
     await page.goto("/login");
-    await page.getByLabel("Student number or phone number").fill(studentNumber);
-    await page.getByLabel("Password").fill(password);
-    await page.getByRole("button", { name: "Log in" }).click();
+    await page.getByLabel("شماره دانشجویی یا شماره تلفن").fill(studentNumber);
+    await page.getByLabel("رمز عبور").fill(password);
+    await page.getByRole("button", { name: "ورود" }).click();
 
     await page.goto("/admin/curricula");
     await expect(page).toHaveURL("/admin/login");
@@ -401,24 +405,24 @@ test.describe("course relationships", () => {
 
       const studentNumber = uniqueId("e2e-relconsume");
       await page.goto("/register");
-      await page.getByLabel("Student number").fill(studentNumber);
-      await page.getByLabel("Password").fill("CorrectPass123!");
-      await page.getByLabel("First name").fill("Sara");
-      await page.getByLabel("Last name").fill("Ahmadi");
-      await page.getByLabel("Phone number").fill(randomPhoneNumber());
-      await page.getByRole("button", { name: "Create account" }).click();
+      await page.getByLabel("شماره دانشجویی").fill(studentNumber);
+      await page.getByLabel("رمز عبور").fill("CorrectPass123!");
+      await page.getByLabel("نام", { exact: true }).fill("Sara");
+      await page.getByLabel("نام خانوادگی").fill("Ahmadi");
+      await page.getByLabel("شماره تلفن").fill(randomPhoneNumber());
+      await page.getByRole("button", { name: "ساخت حساب" }).click();
       await expect(page).toHaveURL("/profile/setup");
 
-      await page.getByLabel("Entry year").fill("1404");
-      await selectOption(page, "Major", "Computer Engineering");
-      await selectOption(page, "Orientation", "Unified");
-      await selectOption(page, "Study type", "Full-time");
-      await page.getByRole("button", { name: "Continue" }).click();
+      await page.getByLabel("سال ورود").fill("1404");
+      await selectOption(page, "رشته", "Computer Engineering");
+      await selectOption(page, "گرایش", "Unified");
+      await selectOption(page, "نوع تحصیل", "تمام‌وقت");
+      await page.getByRole("button", { name: "ادامه" }).click();
       await expect(page).toHaveURL("/academic-setup");
 
-      await page.getByRole("link", { name: "Start Simple Mode" }).click();
+      await page.getByRole("link", { name: "شروع حالت ساده" }).click();
       await expect(page).toHaveURL("/academic-status");
-      await page.getByRole("button", { name: "Continue to dashboard" }).click();
+      await page.getByRole("button", { name: "ادامه به داشبورد" }).click();
       await expect(page).toHaveURL("/dashboard");
 
       const courseBButton = page.getByRole("button", {
@@ -428,7 +432,7 @@ test.describe("course relationships", () => {
       // visible text (docs/03_UX_UI_Specification.md §10 — student status
       // and Rules Engine availability are both shown, but availability isn't
       // rendered as a plain-text label on the card itself).
-      await expect(courseBButton).toHaveAccessibleName(/Blocked/);
+      await expect(courseBButton).toHaveAccessibleName(/غیرقابل انتخاب/);
     } finally {
       // Cleanup via direct deletion (not the UI) so it's reliable regardless
       // of what state the browser session ended up in, and doesn't leak into
@@ -526,7 +530,7 @@ test.describe("curriculum requirements", () => {
     try {
       await selectOption(page, "Type", "Category units");
       await page.locator("#reqName").fill("Basic Units Requirement");
-      await selectOption(page, "Applies to category", "Basic");
+      await selectOption(page, "Applies to category", "اصلی");
       await page.locator("#reqUnits").fill("20");
       await page.getByRole("button", { name: "Add requirement" }).click();
 

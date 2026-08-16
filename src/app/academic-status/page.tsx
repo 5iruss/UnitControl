@@ -29,13 +29,11 @@ export default async function AcademicStatusPage() {
 
   return (
     <main className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
-      <h1 className="text-xl font-semibold">Course statuses</h1>
+      <h1 className="text-xl font-semibold">وضعیت دروس</h1>
 
       <Card>
         <CardHeader>
-          <CardTitle>
-            {curriculumCourses.length} course{curriculumCourses.length === 1 ? "" : "s"}
-          </CardTitle>
+          <CardTitle>{curriculumCourses.length} درس</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col">
@@ -58,11 +56,11 @@ export default async function AcademicStatusPage() {
 
       <div className="flex items-center justify-between">
         <Link href="/dashboard" className="text-sm underline">
-          Back to dashboard
+          بازگشت به داشبورد
         </Link>
         {!profile.academicSetupCompletedAt && (
           <form action={finishAcademicSetupAction}>
-            <Button type="submit">Continue to dashboard</Button>
+            <Button type="submit">ادامه به داشبورد</Button>
           </form>
         )}
       </div>

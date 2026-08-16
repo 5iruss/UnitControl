@@ -73,7 +73,7 @@ export function PlannedCourseRow({ course }: PlannedCourseRowProps) {
 
         <span
           className="flex items-center gap-1 text-xs text-muted-foreground"
-          aria-label={`Eligibility for ${course.name}: ${availability.label}`}
+          aria-label={`وضعیت انتخاب ${course.name}: ${availability.label}`}
         >
           <AvailabilityIcon className="size-3.5" aria-hidden />
           {availability.label}
@@ -85,17 +85,17 @@ export function PlannedCourseRow({ course }: PlannedCourseRowProps) {
           variant="outline"
           onClick={() => setShowMoveInput((prev) => !prev)}
         >
-          Move
+          جابه‌جایی
         </Button>
         <Button
           type="button"
           size="sm"
           variant="destructive"
-          aria-label={`Remove ${course.name} from plan`}
+          aria-label={`حذف ${course.name} از برنامه`}
           onClick={handleRemove}
           disabled={isRemoving}
         >
-          {isRemoving ? "Removing…" : "Remove"}
+          {isRemoving ? "در حال حذف…" : "حذف"}
         </Button>
       </div>
 
@@ -111,7 +111,7 @@ export function PlannedCourseRow({ course }: PlannedCourseRowProps) {
       {showMoveInput && (
         <form onSubmit={handleMove} className="flex flex-wrap items-center gap-2">
           <Input
-            aria-label={`New intended term for ${course.name}`}
+            aria-label={`ترم جدید برای ${course.name}`}
             placeholder="4051"
             value={moveTermCode}
             onChange={(event) => setMoveTermCode(event.target.value)}
@@ -119,7 +119,7 @@ export function PlannedCourseRow({ course }: PlannedCourseRowProps) {
             dir="ltr"
           />
           <Button type="submit" size="sm" disabled={isMoving}>
-            {isMoving ? "Moving…" : "Save new term"}
+            {isMoving ? "در حال ذخیره…" : "ذخیره ترم جدید"}
           </Button>
         </form>
       )}
